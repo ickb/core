@@ -1,0 +1,44 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+  "name": "Node.js & TypeScript",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/typescript-node",
+  "mounts": [
+    "source=ickb-${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=ickb-${localWorkspaceFolderBasename}-dist,target=${containerWorkspaceFolder}/dist,type=volume",
+    "source=pnpm-cache,target=${containerWorkspaceFolder}/.pnpm-store,type=volume"
+  ],
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  // "features": {},
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "sudo chown node -R . && npm install -g pnpm@latest && pnpm install",
+  // Configure tool-specific properties.
+  // "customizations": {},
+  "remoteUser": "node",
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      // Set *default* container specific settings.json values on container create.
+      "settings": {
+        "eslint.validate": [
+          "json",
+          "javascript",
+          "javascriptreact",
+          "typescript",
+          "typescriptreact"
+        ]
+      },
+      "extensions": [
+        "streetsidesoftware.code-spell-checker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "yoavbls.pretty-ts-errors",
+        "davidanson.vscode-markdownlint",
+        "github.vscode-github-actions"
+      ]
+    }
+  }
+}
