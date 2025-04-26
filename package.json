@@ -38,6 +38,6 @@
   },
   "dependencies": {
     "@ckb-ccc/core": "^1.8.0",
-    "@ickb/dao": "^1000.0.12"
+    "@ickb/dao": "^1000.0.14"
   }
 }

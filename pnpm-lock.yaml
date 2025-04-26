@@ -12,8 +12,8 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0(typescript@5.8.3)
       '@ickb/dao':
-        specifier: ^1000.0.12
-        version: 1000.0.12(typescript@5.8.3)
+        specifier: ^1000.0.14
+        version: 1000.0.14(typescript@5.8.3)
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.1
@@ -97,8 +97,8 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@ickb/dao@1000.0.12':
-    resolution: {integrity: sha512-hxXn+BwmkPXicJyiX0a9DzLneGciIXxg64LQxya9VbV+XWk0brzTEoZGNC2rE+WN9a5toHlnn9mIoMQh5jWz4w==}
+  '@ickb/dao@1000.0.14':
+    resolution: {integrity: sha512-UApX5JK9LP6vQWaELLTyR30VSI/lwOmUNst/Kd/HlR0LoxEuTfMUZ8QFahW3bYO6bRCMPEH376Lj5ha2+qjfcw==}
 
   '@joyid/ckb@1.1.2':
     resolution: {integrity: sha512-+e+ISF566zaKNhKNSSS5kBw8or4Kb5Xqxe/2jVkUXKkqVHSS02Trrqe0g4IjSyeN9bszzolr1XgStv2hz62tqA==}
@@ -406,8 +406,8 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  ethers@6.13.5:
-    resolution: {integrity: sha512-+knKNieu5EKRThQJWwqaJ10a6HE9sSehGeqWN65//wE7j47ZpFhKAnHB/JJFibwwg61I/koxaPsXbXpD/skNOQ==}
+  ethers@6.13.7:
+    resolution: {integrity: sha512-qbaJ0uIrjh+huP1Lad2f2QtzW5dcqSVjIzVH6yWB4dKoMuj2WqYz5aMeeQTCNpAKgTJBM5J9vcc2cYJ23UAimQ==}
     engines: {node: '>=14.0.0'}
 
   event-target-shim@5.0.1:
@@ -804,7 +804,7 @@ snapshots:
       bs58check: 4.0.0
       buffer: 6.0.3
       cross-fetch: 4.1.0
-      ethers: 6.13.5
+      ethers: 6.13.7
       isomorphic-ws: 5.0.0(ws@8.18.1)
       ws: 8.18.1
     transitivePeerDependencies:
@@ -871,7 +871,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
-  '@ickb/dao@1000.0.12(typescript@5.8.3)':
+  '@ickb/dao@1000.0.14(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
     transitivePeerDependencies:
@@ -1281,7 +1281,7 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  ethers@6.13.5:
+  ethers@6.13.7:
     dependencies:
       '@adraffy/ens-normalize': 1.10.1
       '@noble/curves': 1.2.0
