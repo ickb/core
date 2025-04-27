@@ -1,13 +1,7 @@
 import { ccc } from "@ckb-ccc/core";
-import {
-  DaoManager,
-  DepositCell,
-  ScriptDeps,
-  SmartTransaction,
-  UdtHandler,
-  WithdrawalRequestCell,
-} from "@ickb/dao";
 import { OwnerData } from "./entities.js";
+import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
+import { DaoManager, DepositCell, WithdrawalRequestCell } from "@ickb/dao";
 
 export class OwnedOwnerManager implements ScriptDeps {
   constructor(

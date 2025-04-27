@@ -1,5 +1,5 @@
 import { ccc, mol } from "@ckb-ccc/core";
-import { CheckedInt32LE } from "@ickb/dao";
+import { CheckedInt32LE } from "@ickb/utils";
 
 export interface OwnerDataLike {
   ownedDistance: ccc.NumLike;

@@ -1,11 +1,7 @@
 import { ccc } from "@ckb-ccc/core";
-import type {
-  DaoManager,
-  ScriptDeps,
-  SmartTransaction,
-  UdtHandler,
-} from "@ickb/dao";
 import { ReceiptData } from "./entities.js";
+import type { DaoManager } from "@ickb/dao";
+import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
 
 export class iCKBUdtHandler implements UdtHandler {
   constructor(

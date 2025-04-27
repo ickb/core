@@ -12,8 +12,11 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0(typescript@5.8.3)
       '@ickb/dao':
-        specifier: ^1000.0.14
-        version: 1000.0.14(typescript@5.8.3)
+        specifier: ^1000.0.15
+        version: 1000.0.15(typescript@5.8.3)
+      '@ickb/utils':
+        specifier: ^1000.0.15
+        version: 1000.0.15(typescript@5.8.3)
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.1
@@ -97,8 +100,11 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@ickb/dao@1000.0.14':
-    resolution: {integrity: sha512-UApX5JK9LP6vQWaELLTyR30VSI/lwOmUNst/Kd/HlR0LoxEuTfMUZ8QFahW3bYO6bRCMPEH376Lj5ha2+qjfcw==}
+  '@ickb/dao@1000.0.15':
+    resolution: {integrity: sha512-qOrml+/JQ9A860UeDcc2FnQgy0edDd/RiBhLuW5M6VFeWHLZW2r4mY03uIjN7r+tvPIRo0VobTnUZrGFKNA/Xg==}
+
+  '@ickb/utils@1000.0.15':
+    resolution: {integrity: sha512-vKgJTagO5sHdgVF9a46yXZf61hbwLErpsDPR+JTVUMAQIbOSkVRG9vH8uuKwh5z6cmD94Vy3ec7Y2aUhhbOVBg==}
 
   '@joyid/ckb@1.1.2':
     resolution: {integrity: sha512-+e+ISF566zaKNhKNSSS5kBw8or4Kb5Xqxe/2jVkUXKkqVHSS02Trrqe0g4IjSyeN9bszzolr1XgStv2hz62tqA==}
@@ -871,7 +877,18 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
-  '@ickb/dao@1000.0.14(typescript@5.8.3)':
+  '@ickb/dao@1000.0.15(typescript@5.8.3)':
+    dependencies:
+      '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
+      '@ickb/utils': 1000.0.15(typescript@5.8.3)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@ickb/utils@1000.0.15(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
     transitivePeerDependencies:
