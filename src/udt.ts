@@ -3,17 +3,40 @@ import { ReceiptData } from "./entities.js";
 import type { DaoManager } from "@ickb/dao";
 import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
 
+/**
+ * iCKBUdtHandler is a class that implements the UdtHandler interface.
+ * It is responsible for handling UDT (User Defined Token) operations related to iCKB.
+ */
 export class iCKBUdtHandler implements UdtHandler {
+  /**
+   * Creates an instance of iCKBUdtHandler.
+   * @param script - The script associated with the UDT.
+   * @param cellDeps - An array of cell dependencies.
+   * @param daoManager - The DAO manager instance.
+   */
   constructor(
     public script: ccc.Script,
     public cellDeps: ccc.CellDep[],
     public daoManager: DaoManager,
   ) {}
 
+  /**
+   * Creates an instance of iCKBUdtHandler from script dependencies and a DAO manager.
+   * @param c - The script dependencies.
+   * @param daoManager - The DAO manager instance.
+   * @returns An instance of iCKBUdtHandler.
+   */
   static fromDeps(c: ScriptDeps, daoManager: DaoManager): iCKBUdtHandler {
     return new iCKBUdtHandler(c.script, c.cellDeps, daoManager);
   }
 
+  /**
+   * Asynchronously retrieves the iCKB balance of inputs in a transaction.
+   * @param client - The client used to interact with the blockchain.
+   * @param tx - The smart transaction containing the inputs.
+   * @returns A promise that resolves to the total iCKB balance of the inputs.
+   * @throws Error if an input is not well defined.
+   */
   async getInputsUdtBalance(
     client: ccc.Client,
     tx: SmartTransaction,
@@ -78,6 +101,11 @@ export class iCKBUdtHandler implements UdtHandler {
     );
   }
 
+  /**
+   * Retrieves the iCKB balance of outputs in a transaction.
+   * @param tx - The smart transaction containing the outputs.
+   * @returns The total iCKB balance of the outputs.
+   */
   getOutputsUdtBalance(tx: SmartTransaction): ccc.Num {
     return tx.outputs.reduce((acc, output, i) => {
       if (!output.type?.eq(this.script)) {
