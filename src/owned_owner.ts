@@ -1,9 +1,22 @@
 import { ccc } from "@ckb-ccc/core";
-import { OwnerData } from "./entities.js";
 import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
 import { DaoManager, DepositCell, WithdrawalRequestCell } from "@ickb/dao";
+import { OwnerData } from "./entities.js";
+import { OwnerCell, type WithdrawalGroups } from "./cells.js";
 
+/**
+ * Manages ownership and withdrawal operations for owned cells.
+ * Implements the ScriptDeps interface.
+ */
 export class OwnedOwnerManager implements ScriptDeps {
+  /**
+   * Creates an instance of OwnedOwnerManager.
+   *
+   * @param script - The script associated with the OwnedOwner script.
+   * @param cellDeps - The cell dependencies for the OwnedOwner script.
+   * @param daoManager - The DAO manager for handling withdrawal requests.
+   * @param udtHandler - The handler for User Defined Tokens (UDTs).
+   */
   constructor(
     public script: ccc.Script,
     public cellDeps: ccc.CellDep[],
@@ -11,6 +24,14 @@ export class OwnedOwnerManager implements ScriptDeps {
     public udtHandler: UdtHandler,
   ) {}
 
+  /**
+   * Creates an instance of OwnedOwnerManager from existing dependencies.
+   *
+   * @param c - The existing script dependencies.
+   * @param daoManager - The DAO manager for handling withdrawal requests.
+   * @param udtHandler - The handler for User Defined Tokens (UDTs).
+   * @returns An instance of OwnedOwnerManager.
+   */
   static fromDeps(
     c: ScriptDeps,
     daoManager: DaoManager,
@@ -19,6 +40,12 @@ export class OwnedOwnerManager implements ScriptDeps {
     return new OwnedOwnerManager(c.script, c.cellDeps, daoManager, udtHandler);
   }
 
+  /**
+   * Checks if the specified cell is an owner cell.
+   *
+   * @param cell - The cell to check against.
+   * @returns True if the cell is an owner cell, otherwise false.
+   */
   isOwner(cell: ccc.Cell): boolean {
     return (
       Boolean(cell.cellOutput.type?.eq(this.script)) &&
@@ -26,6 +53,12 @@ export class OwnedOwnerManager implements ScriptDeps {
     );
   }
 
+  /**
+   * Checks if the specified cell is an owned cell and is a withdrawal request.
+   *
+   * @param cell - The cell to check against.
+   * @returns True if the cell is owned cell, otherwise false.
+   */
   isOwned(cell: ccc.Cell): boolean {
     return (
       this.daoManager.isWithdrawalRequest(cell) &&
@@ -33,6 +66,13 @@ export class OwnedOwnerManager implements ScriptDeps {
     );
   }
 
+  /**
+   * Requests a withdrawal for the specified deposits.
+   *
+   * @param tx - The transaction to add the withdrawal request to.
+   * @param deposits - The deposits to withdraw.
+   * @param lock - The lock script for the output.
+   */
   requestWithdrawal(
     tx: SmartTransaction,
     deposits: DepositCell[],
@@ -56,6 +96,12 @@ export class OwnedOwnerManager implements ScriptDeps {
     }
   }
 
+  /**
+   * Complete the withdraws of the specified withdrawal groups.
+   *
+   * @param tx - The transaction to add the withdrawals to.
+   * @param withdrawalGroups - The withdrawal groups to process.
+   */
   withdraw(tx: SmartTransaction, withdrawalGroups: WithdrawalGroups[]): void {
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
@@ -68,56 +114,52 @@ export class OwnedOwnerManager implements ScriptDeps {
     }
   }
 
+  /**
+   * Asynchronously finds withdrawal groups associated with a given lock script.
+   *
+   * @param client - The client used to interact with the blockchain.
+   * @param locks - The lock scripts to filter withdrawal groups.
+   * @param options - Optional parameters for the search.
+   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
+   * @returns An async generator that yields WithdrawalGroups objects.
+   */
   async *findWithdrawalGroups(
     client: ccc.Client,
-    lock: ccc.ScriptLike,
+    locks: ccc.ScriptLike[],
     options?: {
       onChain?: boolean;
     },
   ): AsyncGenerator<WithdrawalGroups> {
-    const findCellsArgs = [
-      {
-        script: lock,
-        scriptType: "lock",
-        filter: {
-          script: this.script,
+    for (const lock of locks) {
+      const findCellsArgs = [
+        {
+          script: lock,
+          scriptType: "lock",
+          filter: {
+            script: this.script,
+          },
+          scriptSearchMode: "exact",
+          withData: true,
         },
-        scriptSearchMode: "exact",
-        withData: true,
-      },
-      "asc",
-      400, // https://github.com/nervosnetwork/ckb/pull/4576
-    ] as const;
+        "asc",
+        400, // https://github.com/nervosnetwork/ckb/pull/4576
+      ] as const;
 
-    for await (const cell of options?.onChain
-      ? client.findCellsOnChain(...findCellsArgs)
-      : client.findCells(...findCellsArgs)) {
-      if (!this.isOwner(cell) || !cell.cellOutput.lock.eq(lock)) {
-        continue;
+      for await (const cell of options?.onChain
+        ? client.findCellsOnChain(...findCellsArgs)
+        : client.findCells(...findCellsArgs)) {
+        if (!this.isOwner(cell) || !cell.cellOutput.lock.eq(lock)) {
+          continue;
+        }
+
+        const owner = new OwnerCell(cell);
+        const owned = await WithdrawalRequestCell.fromClient(
+          client,
+          owner.getOwned(),
+        );
+
+        yield { owned, owner };
       }
-
-      const owner = new OwnerCell(cell);
-      const owned = await WithdrawalRequestCell.fromClient(
-        client,
-        owner.getOwned(),
-      );
-
-      yield { owned, owner };
     }
-  }
-}
-
-export interface WithdrawalGroups {
-  owned: WithdrawalRequestCell;
-  owner: OwnerCell;
-}
-
-export class OwnerCell {
-  constructor(public cell: ccc.Cell) {}
-
-  getOwned(): ccc.OutPoint {
-    const { txHash, index } = this.cell.outPoint;
-    const { ownedDistance } = OwnerData.decodePrefix(this.cell.outputData);
-    return new ccc.OutPoint(txHash, index + ownedDistance);
   }
 }

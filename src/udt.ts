@@ -89,6 +89,13 @@ export class iCKBUdtHandler implements UdtHandler {
   }
 }
 
+/**
+ * Calculates the iCKB value based on the unoccupied CKB capacity and the block header.
+ *
+ * @param ckbUnoccupiedCapacity - The unoccupied capacity in CKB.
+ * @param header - The block header used for conversion.
+ * @returns The calculated iCKB amount.
+ */
 function ickbValue(
   ckbUnoccupiedCapacity: ccc.FixedPoint,
   header: ccc.ClientBlockHeader,
@@ -105,11 +112,27 @@ function ickbValue(
   return ickbAmount;
 }
 
-export const ICKB_DEPOSIT_CAP = ccc.fixedPointFrom(100000); // 100,000 iCKB;
+/** The maximum deposit cap for iCKB, set to 100,000 iCKB. */
+export const ICKB_DEPOSIT_CAP = ccc.fixedPointFrom(100000); // 100,000 iCKB
+
+/**
+ * Calculates the CKB deposit cap based on the block header.
+ *
+ * @param header - The block header used for conversion.
+ * @returns The calculated CKB deposit cap.
+ */
 export function ckbDepositCap(header: ccc.ClientBlockHeader): ccc.FixedPoint {
   return convert(false, ICKB_DEPOSIT_CAP, { header });
 }
 
+/**
+ * Converts between CKB and iCKB based on the provided ratio.
+ *
+ * @param isCkb2Udt - A boolean indicating the direction of conversion (CKB to iCKB or vice versa).
+ * @param amount - The amount to convert.
+ * @param ratioLike - The ratio information for conversion, which can be either a scale or header information.
+ * @returns The converted amount in the target unit.
+ */
 export function convert(
   isCkb2Udt: boolean,
   amount: ccc.FixedPoint,
@@ -133,6 +156,13 @@ export function convert(
     : (amount * udtScale) / ckbScale;
 }
 
+/**
+ * Calculates the iCKB exchange ratio based on the block header and deposit capacity.
+ *
+ * @param header - The block header used for calculating the exchange ratio.
+ * @param accountDepositCapacity - A boolean indicating whether to account for the deposit capacity in the calculation.
+ * @returns An object containing the CKB and UDT scales.
+ */
 export function ickbExchangeRatio(
   header: ccc.ClientBlockHeader,
   accountDepositCapacity = true,
@@ -143,11 +173,11 @@ export function ickbExchangeRatio(
   const AR_m = header.dao.ar;
   return {
     ckbScale: AR_0,
-    udtScale: accountDepositCapacity ? AR_m + depositCapacityMultiplier : AR_m,
+    udtScale: accountDepositCapacity ? AR_m + depositCapacityDelta : AR_m,
   };
 }
 
-const AR_0: ccc.Num = 10000000000000000n;
-const depositUsedCapacity = ccc.fixedPointFrom(82); // 82n CKB;
-const depositCapacityMultiplier =
-  (depositUsedCapacity * AR_0) / ICKB_DEPOSIT_CAP;
+// Constants used in calculations
+const AR_0: ccc.Num = 10000000000000000n; // Base scale for CKB
+const depositUsedCapacity = ccc.fixedPointFrom(82); // 82n CKB
+const depositCapacityDelta = (depositUsedCapacity * AR_0) / ICKB_DEPOSIT_CAP; // Delta for deposit capacity

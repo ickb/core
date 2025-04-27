@@ -1,15 +1,26 @@
 import { ccc } from "@ckb-ccc/core";
-import { ReceiptData } from "./entities.js";
 import {
-  getHeader,
   type ScriptDeps,
   type SmartTransaction,
-  type TransactionHeader,
   type UdtHandler,
 } from "@ickb/utils";
 import { DaoManager, type DepositCell } from "@ickb/dao";
+import { ReceiptCell } from "./cells.js";
+import { ReceiptData } from "./entities.js";
 
+/**
+ * Manages logic related to deposits and receipts in the blockchain.
+ * Implements the ScriptDeps interface.
+ */
 export class LogicManager implements ScriptDeps {
+  /**
+   * Creates an instance of LogicManager.
+   *
+   * @param script - The script associated with the manager.
+   * @param cellDeps - The cell dependencies for the manager.
+   * @param daoManager - The DAO manager for handling deposits and receipts.
+   * @param udtHandler - The handler for User Defined Tokens (UDTs).
+   */
   constructor(
     public script: ccc.Script,
     public cellDeps: ccc.CellDep[],
@@ -17,6 +28,14 @@ export class LogicManager implements ScriptDeps {
     public udtHandler: UdtHandler,
   ) {}
 
+  /**
+   * Creates an instance of LogicManager from existing dependencies.
+   *
+   * @param c - The existing script dependencies.
+   * @param daoManager - The DAO manager for handling deposits and receipts.
+   * @param udtHandler - The handler for User Defined Tokens (UDTs).
+   * @returns An instance of LogicManager.
+   */
   static fromDeps(
     c: ScriptDeps,
     daoManager: DaoManager,
@@ -25,16 +44,36 @@ export class LogicManager implements ScriptDeps {
     return new LogicManager(c.script, c.cellDeps, daoManager, udtHandler);
   }
 
+  /**
+   * Checks if the specified cell is an iCKB receipt.
+   *
+   * @param cell - The cell to check.
+   * @returns True if the cell is a receipt, otherwise false.
+   */
   isReceipt(cell: ccc.Cell): boolean {
     return Boolean(cell.cellOutput.type?.eq(this.script));
   }
 
+  /**
+   * Checks if the specified cell is an iCKB deposit.
+   *
+   * @param cell - The cell to check.
+   * @returns True if the cell is a deposit, otherwise false.
+   */
   isDeposit(cell: ccc.Cell): boolean {
     return (
       this.daoManager.isDeposit(cell) && cell.cellOutput.lock.eq(this.script)
     );
   }
 
+  /**
+   * Processes a deposit transaction.
+   *
+   * @param tx - The transaction to add the deposit to.
+   * @param depositQuantity - The quantity of deposits.
+   * @param depositAmount - The amount of each deposit.
+   * @param lock - The lock script for the output receipt cell.
+   */
   deposit(
     tx: SmartTransaction,
     depositQuantity: ccc.NumLike,
@@ -60,6 +99,12 @@ export class LogicManager implements ScriptDeps {
     );
   }
 
+  /**
+   * Completes a deposit transaction by transforming the receipts into iCKB UDTs.
+   *
+   * @param tx - The transaction to add the receipts to.
+   * @param receipts - The receipts to add to the transaction.
+   */
   completeDeposit(tx: SmartTransaction, receipts: ReceiptCell[]): void {
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
@@ -71,6 +116,15 @@ export class LogicManager implements ScriptDeps {
     }
   }
 
+  /**
+   * Asynchronously finds receipt cells associated with given lock scripts.
+   *
+   * @param client - The client used to interact with the blockchain.
+   * @param locks - The lock scripts to filter receipt cells.
+   * @param options - Optional parameters for the search.
+   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
+   * @returns An async generator that yields ReceiptCell objects.
+   */
   async *findReceipts(
     client: ccc.Client,
     locks: ccc.ScriptLike[],
@@ -105,6 +159,14 @@ export class LogicManager implements ScriptDeps {
     }
   }
 
+  /**
+   * Finds the iCKB deposits
+   *
+   * @param client - The client used to interact with the blockchain.
+   * @param options - Optional parameters for the search.
+   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
+   * @returns An async generator that yields DepositCell objects.
+   */
   findDeposits(
     client: ccc.Client,
     options?: {
@@ -112,30 +174,5 @@ export class LogicManager implements ScriptDeps {
     },
   ): AsyncGenerator<DepositCell> {
     return this.daoManager.findDeposits(client, [this.script], options);
-  }
-}
-
-export class ReceiptCell {
-  constructor(
-    public cell: ccc.Cell,
-    public header: TransactionHeader,
-  ) {}
-
-  static async fromClient(
-    client: ccc.Client,
-    c: ccc.Cell | ccc.OutPoint,
-  ): Promise<ReceiptCell> {
-    const cell = "cellOutput" in c ? c : await client.getCell(c);
-    if (!cell) {
-      throw Error("No Receipt Cell not found at the outPoint");
-    }
-
-    const txHash = cell.outPoint.txHash;
-    const header = await getHeader(client, {
-      type: "txHash",
-      value: txHash,
-    });
-
-    return new ReceiptCell(cell, { header, txHash });
   }
 }

@@ -1,3 +1,4 @@
+export * from "./cells.js";
 export * from "./entities.js";
 export * from "./logic.js";
 export * from "./owned_owner.js";
