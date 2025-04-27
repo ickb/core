@@ -6,11 +6,16 @@ iCKB Core utils built on top of CCC
 
 ```mermaid
 graph TD;
-    A[ickb/utils] --> B[ckb-ccc/core];
-    C[ickb/dao] --> A[ickb/utils];
-    C --> B[ckb-ccc/core];
-    D[ickb/core] --> A[ickb/utils];
-    D --> C[ickb/dao];
+    A["@ickb/utils"] --> B["@ckb-ccc/core"];
+    C["@ickb/dao"] --> A;
+    C --> B;
+    D["@ickb/core"] --> A;
+    D --> C;
+
+    click A "https://github.com/ickb/utils" "Go to @ickb/utils"
+    click B "https://github.com/ckb-devrel/ccc/tree/master/packages/core" "Go to @ckb-ccc/core"
+    click C "https://github.com/ickb/dao" "Go to @ickb/dao"
+    click D "https://github.com/ickb/core" "Go to @ickb/core"
 ```
 
 ## Epoch Semantic Versioning
