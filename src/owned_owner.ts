@@ -41,7 +41,7 @@ export class OwnedOwnerManager implements ScriptDeps {
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
 
-    tx = this.daoManager.requestWithdrawal(tx, deposits, this.script);
+    this.daoManager.requestWithdrawal(tx, deposits, this.script);
 
     const outputData = OwnerData.encode({ ownedDistance: -deposits.length });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
