@@ -4,8 +4,8 @@ import {
   type SmartTransaction,
   type UdtHandler,
 } from "@ickb/utils";
-import { DaoManager, type DepositCell } from "@ickb/dao";
-import { ReceiptCell } from "./cells.js";
+import { DaoManager } from "@ickb/dao";
+import { iCKBDepositCell, ReceiptCell } from "./cells.js";
 import { ReceiptData } from "./entities.js";
 
 /**
@@ -160,19 +160,33 @@ export class LogicManager implements ScriptDeps {
   }
 
   /**
-   * Finds the iCKB deposits
+   * Asynchronously finds iCKB deposit cells.
    *
-   * @param client - The client used to interact with the blockchain.
-   * @param options - Optional parameters for the search.
-   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
-   * @returns An async generator that yields DepositCell objects.
+   * @param {ccc.Client} client - The client used to interact with the blockchain.
+   * @param {Object} [options] - Optional parameters for the deposit search.
+   * @param {ccc.ClientBlockHeaderLike} [options.tip] - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.
+   * @param {boolean} [options.onChain] - A flag indicating whether to search for on-chain deposits.
+   *
+   * @returns {AsyncGenerator<iCKBDepositCell>} An asynchronous generator that yields iCKB deposit cells.
    */
-  findDeposits(
+  async *findDeposits(
     client: ccc.Client,
     options?: {
+      tip?: ccc.ClientBlockHeaderLike;
       onChain?: boolean;
     },
-  ): AsyncGenerator<DepositCell> {
-    return this.daoManager.findDeposits(client, [this.script], options);
+  ): AsyncGenerator<iCKBDepositCell> {
+    const tip = options?.tip
+      ? ccc.ClientBlockHeader.from(options.tip)
+      : await client.getTipHeader();
+    options = { ...options, tip };
+
+    for await (const {
+      cell,
+      transactionHeaders: { 0: transactionHeader },
+    } of this.daoManager.findDeposits(client, [this.script], options)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      yield new iCKBDepositCell(cell, transactionHeader!, tip);
+    }
   }
 }

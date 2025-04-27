@@ -1,22 +1,61 @@
 import { ccc } from "@ckb-ccc/core";
-import type { WithdrawalRequestCell } from "@ickb/dao";
+import { DepositCell, type WithdrawalRequestCell } from "@ickb/dao";
 import { getHeader, type TransactionHeader } from "@ickb/utils";
-import { OwnerData } from "./entities.js";
+import { OwnerData, ReceiptData } from "./entities.js";
+import { ickbValue } from "./udt.js";
+
+/**
+ * Class representing an iCKB deposit cell, which extends the DepositCell class.
+ * This class adds functionality specific to iCKB deposits, including the calculation of the iCKB value.
+ */
+export class iCKBDepositCell extends DepositCell {
+  /**
+   * The iCKB value associated with this deposit cell.
+   * This value is calculated based on the cell's free capacity and the deposit transaction header.
+   */
+  public ickbValue: ccc.FixedPoint;
+
+  /**
+   * Creates an instance of iCKBDepositCell.
+   * @param {ccc.Cell} cell - The cell associated with this iCKB deposit.
+   * @param {TransactionHeader} header - The transaction header for the iCKB deposit.
+   * @param {ccc.ClientBlockHeader} tip - The client block header representing the latest block.
+   */
+  constructor(
+    cell: ccc.Cell,
+    header: TransactionHeader,
+    tip: ccc.ClientBlockHeader,
+  ) {
+    super(cell, header, tip);
+    this.ickbValue = ickbValue(this.cell.capacityFree, header.header);
+  }
+}
 
 /**
  * Represents a receipt cell containing the receipt for iCKB Deposits.
  */
 export class ReceiptCell {
   /**
+   * The iCKB value associated with this receipt cell.
+   * This value is calculated based on the deposit amount and quantity from the receipt data.
+   */
+  public ickbValue: ccc.FixedPoint;
+
+  /**
    * Creates an instance of ReceiptCell.
-   *
-   * @param cell - The cell associated with the receipt.
-   * @param header - The transaction header associated with the receipt cell.
+   * @param {ccc.Cell} cell - The cell associated with the receipt.
+   * @param {TransactionHeader} header - The transaction header associated with the receipt cell.
    */
   constructor(
     public cell: ccc.Cell,
     public header: TransactionHeader,
-  ) {}
+  ) {
+    const { depositQuantity, depositAmount } = ReceiptData.decode(
+      cell.outputData,
+    );
+
+    this.ickbValue = ickbValue(depositAmount, header.header) * depositQuantity;
+  }
 
   /**
    * Creates a ReceiptCell instance from a client and a cell or out point.

@@ -124,7 +124,7 @@ export class iCKBUdtHandler implements UdtHandler {
  * @param header - The block header used for conversion.
  * @returns The calculated iCKB amount.
  */
-function ickbValue(
+export function ickbValue(
   ckbUnoccupiedCapacity: ccc.FixedPoint,
   header: ccc.ClientBlockHeader,
 ): ccc.FixedPoint {
