@@ -1,95 +1,111 @@
 import { ccc } from "@ckb-ccc/core";
-import { DepositCell, type WithdrawalRequestCell } from "@ickb/dao";
 import { getHeader, type TransactionHeader } from "@ickb/utils";
 import { OwnerData, ReceiptData } from "./entities.js";
 import { ickbValue } from "./udt.js";
+import { type DaoCell, DaoCellFrom } from "@ickb/dao";
 
 /**
- * Class representing an iCKB deposit cell, which extends the DepositCell class.
+ * Class representing an iCKB deposit cell, which extends the DaoCell interface.
  * This class adds functionality specific to iCKB deposits, including the calculation of the iCKB value.
  */
-export class iCKBDepositCell extends DepositCell {
+export interface iCKBDepositCell extends DaoCell {
   /**
    * The iCKB value associated with this deposit cell.
    * This value is calculated based on the cell's free capacity and the deposit transaction header.
    */
-  public ickbValue: ccc.FixedPoint;
+  ickbValue: ccc.FixedPoint;
+}
 
-  /**
-   * Creates an instance of iCKBDepositCell.
-   * @param {ccc.Cell} cell - The cell associated with this iCKB deposit.
-   * @param {TransactionHeader} header - The transaction header for the iCKB deposit.
-   * @param {ccc.ClientBlockHeader} tip - The client block header representing the latest block.
-   */
-  constructor(
-    cell: ccc.Cell,
-    header: TransactionHeader,
-    tip: ccc.ClientBlockHeader,
-  ) {
-    super(cell, header, tip);
-    this.ickbValue = ickbValue(this.cell.capacityFree, header.header);
-  }
+/**
+ * Creates an iCKBDepositCell instance from the provided parameters.
+ *
+ * @param options - The options to create a DaoCell. It can be one of the following:
+ * - An object omitting "interests" and "maturity" from DaoCell.
+ * - An object containing a cell, isDeposit flag, client, and an optional tip.
+ * - An object containing an outpoint, isDeposit flag, client, and an optional tip.
+ * - an instance of `DaoCell`.
+ *
+ * @returns A promise that resolves to an iCKBDepositCell instance.
+ *
+ * @throws Error if the cell is not found.
+ */
+export async function iCKBDepositCellFrom(
+  options: Parameters<typeof DaoCellFrom>[0] | DaoCell,
+): Promise<iCKBDepositCell> {
+  const daoCell = "maturity" in options ? options : await DaoCellFrom(options);
+  return {
+    ...daoCell,
+    ickbValue: ickbValue(daoCell.cell.capacityFree, daoCell.headers[0].header),
+  };
 }
 
 /**
  * Represents a receipt cell containing the receipt for iCKB Deposits.
  */
-export class ReceiptCell {
+export interface ReceiptCell {
+  /** The cell associated with the receipt. */
+  cell: ccc.Cell;
+
+  /** The transaction header associated with the receipt cell. */
+  header: TransactionHeader;
+
   /**
    * The iCKB value associated with this receipt cell.
    * This value is calculated based on the deposit amount and quantity from the receipt data.
    */
-  public ickbValue: ccc.FixedPoint;
-
-  /**
-   * Creates an instance of ReceiptCell.
-   * @param {ccc.Cell} cell - The cell associated with the receipt.
-   * @param {TransactionHeader} header - The transaction header associated with the receipt cell.
-   */
-  constructor(
-    public cell: ccc.Cell,
-    public header: TransactionHeader,
-  ) {
-    const { depositQuantity, depositAmount } = ReceiptData.decode(
-      cell.outputData,
-    );
-
-    this.ickbValue = ickbValue(depositAmount, header.header) * depositQuantity;
-  }
-
-  /**
-   * Creates a ReceiptCell instance from a client and a cell or out point.
-   *
-   * @param client - The client used to interact with the blockchain.
-   * @param c - The cell or out point to retrieve the receipt cell from.
-   * @returns A promise that resolves to a ReceiptCell instance.
-   * @throws Error if the receipt cell is not found at the specified out point.
-   */
-  static async fromClient(
-    client: ccc.Client,
-    c: ccc.Cell | ccc.OutPoint,
-  ): Promise<ReceiptCell> {
-    const cell = "cellOutput" in c ? c : await client.getCell(c);
-    if (!cell) {
-      throw Error("No Receipt Cell not found at the outPoint");
-    }
-
-    const txHash = cell.outPoint.txHash;
-    const header = await getHeader(client, {
-      type: "txHash",
-      value: txHash,
-    });
-
-    return new ReceiptCell(cell, { header, txHash });
-  }
+  ickbValue: ccc.FixedPoint;
 }
 
 /**
- * Represents a grouping of withdrawal-related data.
+ * Creates a ReceiptCell instance from the provided options.
+ * @param options - Options for creating a ReceiptCell.
+ * @returns A promise that resolves to a ReceiptCell instance.
+ * @throws ReceiptCellError if the cell is not found.
+ */
+export async function receiptCellFrom(
+  options:
+    | {
+        cell: ccc.Cell;
+        client: ccc.Client;
+      }
+    | {
+        outpoint: ccc.OutPoint;
+        client: ccc.Client;
+      },
+): Promise<ReceiptCell> {
+  const cell =
+    "cell" in options
+      ? options.cell
+      : await options.client.getCell(options.outpoint);
+  if (!cell) {
+    throw Error("Cell not found");
+  }
+
+  const txHash = cell.outPoint.txHash;
+  const header = {
+    header: await getHeader(options.client, {
+      type: "txHash",
+      value: txHash,
+    }),
+    txHash,
+  };
+  const { depositQuantity, depositAmount } = ReceiptData.decode(
+    cell.outputData,
+  );
+
+  return {
+    cell,
+    header,
+    ickbValue: ickbValue(depositAmount, header.header) * depositQuantity,
+  };
+}
+
+/**
+ * Represents a WithdrawalGroups
  */
 export interface WithdrawalGroups {
-  /** The withdrawal request cell associated with the group. */
-  owned: WithdrawalRequestCell;
+  /** The DAO withdrawal request cell associated with the group. */
+  owned: DaoCell;
   /** The owner cell associated with the group. */
   owner: OwnerCell;
 }

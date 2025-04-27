@@ -12,8 +12,8 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0(typescript@5.8.3)
       '@ickb/dao':
-        specifier: ^1000.0.17
-        version: 1000.0.17(typescript@5.8.3)
+        specifier: ^1000.0.19
+        version: 1000.0.19(typescript@5.8.3)
       '@ickb/utils':
         specifier: ^1000.0.15
         version: 1000.0.15(typescript@5.8.3)
@@ -100,8 +100,8 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@ickb/dao@1000.0.17':
-    resolution: {integrity: sha512-tw+eub0Mgs6vb7vERLzA0J+O+DmWy28nOd5lUXE4n9gdnHbNw3GQ2j60Cw1awyZonmYXlMYXdoo6L8AivO2okw==}
+  '@ickb/dao@1000.0.19':
+    resolution: {integrity: sha512-88OItinF8iX7A98l8ksrDI2FsjDAtFKjZPbhxv03L/rpvE5sNS7mJca+qSdQ4akWkZeOREmUe7rjPZXd6UZERQ==}
 
   '@ickb/utils@1000.0.15':
     resolution: {integrity: sha512-vKgJTagO5sHdgVF9a46yXZf61hbwLErpsDPR+JTVUMAQIbOSkVRG9vH8uuKwh5z6cmD94Vy3ec7Y2aUhhbOVBg==}
@@ -877,7 +877,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
-  '@ickb/dao@1000.0.17(typescript@5.8.3)':
+  '@ickb/dao@1000.0.19(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
       '@ickb/utils': 1000.0.15(typescript@5.8.3)

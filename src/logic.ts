@@ -5,7 +5,12 @@ import {
   type UdtHandler,
 } from "@ickb/utils";
 import { DaoManager } from "@ickb/dao";
-import { iCKBDepositCell, ReceiptCell } from "./cells.js";
+import {
+  iCKBDepositCell,
+  iCKBDepositCellFrom,
+  ReceiptCell,
+  receiptCellFrom,
+} from "./cells.js";
 import { ReceiptData } from "./entities.js";
 
 /**
@@ -154,7 +159,7 @@ export class LogicManager implements ScriptDeps {
           continue;
         }
 
-        yield ReceiptCell.fromClient(client, cell);
+        yield receiptCellFrom({ client, cell });
       }
     }
   }
@@ -181,12 +186,12 @@ export class LogicManager implements ScriptDeps {
       : await client.getTipHeader();
     options = { ...options, tip };
 
-    for await (const {
-      cell,
-      transactionHeaders: { 0: transactionHeader },
-    } of this.daoManager.findDeposits(client, [this.script], options)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      yield new iCKBDepositCell(cell, transactionHeader!, tip);
+    for await (const deposit of this.daoManager.findDeposits(
+      client,
+      [this.script],
+      options,
+    )) {
+      yield iCKBDepositCellFrom(deposit);
     }
   }
 }
