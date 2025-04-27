@@ -73,33 +73,35 @@ export class LogicManager implements ScriptDeps {
 
   async *findReceipts(
     client: ccc.Client,
-    lock: ccc.ScriptLike,
+    locks: ccc.ScriptLike[],
     options?: {
       onChain?: boolean;
     },
   ): AsyncGenerator<ReceiptCell> {
-    const findCellsArgs = [
-      {
-        script: lock,
-        scriptType: "lock",
-        filter: {
-          script: this.script,
+    for (const lock of locks) {
+      const findCellsArgs = [
+        {
+          script: lock,
+          scriptType: "lock",
+          filter: {
+            script: this.script,
+          },
+          scriptSearchMode: "exact",
+          withData: true,
         },
-        scriptSearchMode: "exact",
-        withData: true,
-      },
-      "asc",
-      400, // https://github.com/nervosnetwork/ckb/pull/4576
-    ] as const;
+        "asc",
+        400, // https://github.com/nervosnetwork/ckb/pull/4576
+      ] as const;
 
-    for await (const cell of options?.onChain
-      ? client.findCellsOnChain(...findCellsArgs)
-      : client.findCells(...findCellsArgs)) {
-      if (!this.isReceipt(cell) || !cell.cellOutput.lock.eq(lock)) {
-        continue;
+      for await (const cell of options?.onChain
+        ? client.findCellsOnChain(...findCellsArgs)
+        : client.findCells(...findCellsArgs)) {
+        if (!this.isReceipt(cell) || !cell.cellOutput.lock.eq(lock)) {
+          continue;
+        }
+
+        yield ReceiptCell.fromClient(client, cell);
       }
-
-      yield ReceiptCell.fromClient(client, cell);
     }
   }
 
@@ -109,7 +111,7 @@ export class LogicManager implements ScriptDeps {
       onChain?: boolean;
     },
   ): AsyncGenerator<DepositCell> {
-    return this.daoManager.findDeposits(client, this.script, options);
+    return this.daoManager.findDeposits(client, [this.script], options);
   }
 }
 
