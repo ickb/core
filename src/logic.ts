@@ -171,7 +171,7 @@ export class LogicManager implements ScriptDeps {
    *
    * @param {ccc.Client} client - The client used to interact with the blockchain.
    * @param {Object} [options] - Optional parameters for the deposit search.
-   * @param {ccc.ClientBlockHeaderLike} [options.tip] - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.
+   * @param {ccc.ClientBlockHeader} [options.tip] - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.
    * @param {boolean} [options.onChain] - A flag indicating whether to search for on-chain deposits.
    *
    * @returns {AsyncGenerator<IckbDepositCell>} An asynchronous generator that yields iCKB deposit cells.
@@ -179,7 +179,7 @@ export class LogicManager implements ScriptDeps {
   async *findDeposits(
     client: ccc.Client,
     options?: {
-      tip?: ccc.ClientBlockHeaderLike;
+      tip?: ccc.ClientBlockHeader;
       onChain?: boolean;
     },
   ): AsyncGenerator<IckbDepositCell> {

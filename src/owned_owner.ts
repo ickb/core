@@ -131,16 +131,18 @@ export class OwnedOwnerManager implements ScriptDeps {
    * @param client - The client used to interact with the blockchain.
    * @param locks - The lock scripts to filter withdrawal groups.
    * @param options - Optional parameters for the search.
-   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
+   * @param {ccc.ClientBlockHeader} options.tip - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
    * @returns An async generator that yields WithdrawalGroups objects.
    */
   async *findWithdrawalGroups(
     client: ccc.Client,
     locks: ccc.ScriptLike[],
     options?: {
+      tip?: ccc.ClientBlockHeader;
       onChain?: boolean;
     },
   ): AsyncGenerator<WithdrawalGroups> {
+    const tip = options?.tip ?? (await client.getTipHeader());
     for (const lock of locks) {
       const findCellsArgs = [
         {
@@ -168,6 +170,7 @@ export class OwnedOwnerManager implements ScriptDeps {
           outpoint: owner.getOwned(),
           isDeposit: false,
           client,
+          tip,
         });
         yield { owned, owner };
       }
