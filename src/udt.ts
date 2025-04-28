@@ -72,8 +72,10 @@ export class IckbManager extends UdtManager implements UdtHandler {
           return acc;
         }
 
+        const cell = new ccc.Cell(outPoint, cellOutput, outputData);
+
         // An iCKB UDT Cell
-        if (type.eq(this.script)) {
+        if (this.isUdt(cell)) {
           return acc + ccc.udtBalanceFrom(outputData);
         }
 
@@ -92,11 +94,6 @@ export class IckbManager extends UdtManager implements UdtHandler {
         }
 
         // An iCKB Deposit for which the withdrawal is being requested
-        const cell = ccc.Cell.from({
-          outPoint,
-          cellOutput,
-          outputData,
-        });
         if (lock.hash() === iCKBHash && this.daoManager.isDeposit(cell)) {
           // Get header of Deposit cell and check its inclusion in HeaderDeps
           const header = await tx.getHeader(client, {
