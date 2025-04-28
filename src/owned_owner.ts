@@ -1,10 +1,10 @@
 import { ccc } from "@ckb-ccc/core";
 import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
-import { DaoCellFrom, DaoManager } from "@ickb/dao";
+import { daoCellFrom, DaoManager } from "@ickb/dao";
 import { OwnerData } from "./entities.js";
 import {
   OwnerCell,
-  type iCKBDepositCell,
+  type IckbDepositCell,
   type WithdrawalGroups,
 } from "./cells.js";
 
@@ -31,17 +31,24 @@ export class OwnedOwnerManager implements ScriptDeps {
   /**
    * Creates an instance of OwnedOwnerManager from existing dependencies.
    *
-   * @param c - The existing script dependencies.
+   * @param deps - The existing script dependencies.
    * @param daoManager - The DAO manager for handling withdrawal requests.
    * @param udtHandler - The handler for User Defined Tokens (UDTs).
    * @returns An instance of OwnedOwnerManager.
    */
   static fromDeps(
-    c: ScriptDeps,
+    deps: ScriptDeps,
     daoManager: DaoManager,
     udtHandler: UdtHandler,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._: never[]
   ): OwnedOwnerManager {
-    return new OwnedOwnerManager(c.script, c.cellDeps, daoManager, udtHandler);
+    return new OwnedOwnerManager(
+      deps.script,
+      deps.cellDeps,
+      daoManager,
+      udtHandler,
+    );
   }
 
   /**
@@ -79,7 +86,7 @@ export class OwnedOwnerManager implements ScriptDeps {
    */
   requestWithdrawal(
     tx: SmartTransaction,
-    deposits: iCKBDepositCell[],
+    deposits: IckbDepositCell[],
     lock: ccc.ScriptLike,
   ): void {
     tx.addCellDeps(this.cellDeps);
@@ -157,7 +164,7 @@ export class OwnedOwnerManager implements ScriptDeps {
         }
 
         const owner = new OwnerCell(cell);
-        const owned = await DaoCellFrom({
+        const owned = await daoCellFrom({
           outpoint: owner.getOwned(),
           isDeposit: false,
           client,

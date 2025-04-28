@@ -2,18 +2,18 @@ import { ccc } from "@ckb-ccc/core";
 import { getHeader, type TransactionHeader } from "@ickb/utils";
 import { OwnerData, ReceiptData } from "./entities.js";
 import { ickbValue } from "./udt.js";
-import { type DaoCell, DaoCellFrom } from "@ickb/dao";
+import { daoCellFrom, type DaoCell } from "@ickb/dao";
 
 /**
  * Class representing an iCKB deposit cell, which extends the DaoCell interface.
  * This class adds functionality specific to iCKB deposits, including the calculation of the iCKB value.
  */
-export interface iCKBDepositCell extends DaoCell {
+export interface IckbDepositCell extends DaoCell {
   /**
    * The iCKB value associated with this deposit cell.
    * This value is calculated based on the cell's free capacity and the deposit transaction header.
    */
-  ickbValue: ccc.FixedPoint;
+  udtValue: ccc.FixedPoint;
 }
 
 /**
@@ -29,13 +29,13 @@ export interface iCKBDepositCell extends DaoCell {
  *
  * @throws Error if the cell is not found.
  */
-export async function iCKBDepositCellFrom(
-  options: Parameters<typeof DaoCellFrom>[0] | DaoCell,
-): Promise<iCKBDepositCell> {
-  const daoCell = "maturity" in options ? options : await DaoCellFrom(options);
+export async function ickbDepositCellFrom(
+  options: Parameters<typeof daoCellFrom>[0] | DaoCell,
+): Promise<IckbDepositCell> {
+  const daoCell = "maturity" in options ? options : await daoCellFrom(options);
   return {
     ...daoCell,
-    ickbValue: ickbValue(daoCell.cell.capacityFree, daoCell.headers[0].header),
+    udtValue: ickbValue(daoCell.cell.capacityFree, daoCell.headers[0].header),
   };
 }
 
@@ -53,7 +53,7 @@ export interface ReceiptCell {
    * The iCKB value associated with this receipt cell.
    * This value is calculated based on the deposit amount and quantity from the receipt data.
    */
-  ickbValue: ccc.FixedPoint;
+  udtValue: ccc.FixedPoint;
 }
 
 /**
@@ -96,7 +96,7 @@ export async function receiptCellFrom(
   return {
     cell,
     header,
-    ickbValue: ickbValue(depositAmount, header.header) * depositQuantity,
+    udtValue: ickbValue(depositAmount, header.header) * depositQuantity,
   };
 }
 

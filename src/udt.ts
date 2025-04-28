@@ -1,33 +1,45 @@
 import { ccc } from "@ckb-ccc/core";
 import { ReceiptData } from "./entities.js";
 import type { DaoManager } from "@ickb/dao";
-import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
+import {
+  UdtManager,
+  type ScriptDeps,
+  type SmartTransaction,
+  type UdtHandler,
+} from "@ickb/utils";
 
 /**
- * iCKBUdtHandler is a class that implements the UdtHandler interface.
+ * IckbManager is a class that implements the UdtHandler interface.
  * It is responsible for handling UDT (User Defined Token) operations related to iCKB.
  */
-export class iCKBUdtHandler implements UdtHandler {
+export class IckbManager extends UdtManager implements UdtHandler {
   /**
-   * Creates an instance of iCKBUdtHandler.
+   * Creates an instance of IckbManager.
    * @param script - The script associated with the UDT.
    * @param cellDeps - An array of cell dependencies.
    * @param daoManager - The DAO manager instance.
    */
   constructor(
-    public script: ccc.Script,
-    public cellDeps: ccc.CellDep[],
+    script: ccc.Script,
+    cellDeps: ccc.CellDep[],
     public daoManager: DaoManager,
-  ) {}
+  ) {
+    super(script, cellDeps);
+  }
 
   /**
-   * Creates an instance of iCKBUdtHandler from script dependencies and a DAO manager.
-   * @param c - The script dependencies.
+   * Creates an instance of IckbManager from script dependencies and a DAO manager.
+   * @param deps - The script dependencies.
    * @param daoManager - The DAO manager instance.
-   * @returns An instance of iCKBUdtHandler.
+   * @returns An instance of IckbManager.
    */
-  static fromDeps(c: ScriptDeps, daoManager: DaoManager): iCKBUdtHandler {
-    return new iCKBUdtHandler(c.script, c.cellDeps, daoManager);
+  static override fromDeps(
+    deps: ScriptDeps,
+    daoManager: DaoManager,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._: never[]
+  ): IckbManager {
+    return new IckbManager(deps.script, deps.cellDeps, daoManager);
   }
 
   /**
@@ -37,14 +49,14 @@ export class iCKBUdtHandler implements UdtHandler {
    * @returns A promise that resolves to the total iCKB balance of the inputs.
    * @throws Error if an input is not well defined.
    */
-  async getInputsUdtBalance(
+  override async getInputsUdtBalance(
     client: ccc.Client,
     tx: SmartTransaction,
   ): Promise<ccc.FixedPoint> {
     const iCKBHash = this.script.args.slice(0, 66);
     return ccc.reduceAsync(
       tx.inputs,
-      async (total, input) => {
+      async (acc, input) => {
         // Get all cell info
         await input.completeExtraInfos(client);
         const { previousOutput: outPoint, cellOutput, outputData } = input;
@@ -57,12 +69,12 @@ export class iCKBUdtHandler implements UdtHandler {
         const { type, lock } = cellOutput;
 
         if (!type) {
-          return total;
+          return acc;
         }
 
         // An iCKB UDT Cell
         if (type.eq(this.script)) {
-          return total + ccc.udtBalanceFrom(outputData);
+          return acc + ccc.udtBalanceFrom(outputData);
         }
 
         // An iCKB Receipt
@@ -76,7 +88,7 @@ export class iCKBUdtHandler implements UdtHandler {
           const { depositQuantity, depositAmount } =
             ReceiptData.decode(outputData);
 
-          return total + ickbValue(depositAmount, header) * depositQuantity;
+          return acc + ickbValue(depositAmount, header) * depositQuantity;
         }
 
         // An iCKB Deposit for which the withdrawal is being requested
@@ -92,28 +104,13 @@ export class iCKBUdtHandler implements UdtHandler {
             value: outPoint.txHash,
           });
 
-          return total - ickbValue(cell.capacityFree, header);
+          return acc - ickbValue(cell.capacityFree, header);
         }
 
-        return total;
+        return acc;
       },
       ccc.Zero,
     );
-  }
-
-  /**
-   * Retrieves the iCKB balance of outputs in a transaction.
-   * @param tx - The smart transaction containing the outputs.
-   * @returns The total iCKB balance of the outputs.
-   */
-  getOutputsUdtBalance(tx: SmartTransaction): ccc.Num {
-    return tx.outputs.reduce((acc, output, i) => {
-      if (!output.type?.eq(this.script)) {
-        return acc;
-      }
-
-      return acc + ccc.udtBalanceFrom(tx.outputsData[i] ?? "0x");
-    }, ccc.Zero);
   }
 }
 

@@ -6,8 +6,8 @@ import {
 } from "@ickb/utils";
 import { DaoManager } from "@ickb/dao";
 import {
-  iCKBDepositCell,
-  iCKBDepositCellFrom,
+  IckbDepositCell,
+  ickbDepositCellFrom,
   ReceiptCell,
   receiptCellFrom,
 } from "./cells.js";
@@ -36,17 +36,19 @@ export class LogicManager implements ScriptDeps {
   /**
    * Creates an instance of LogicManager from existing dependencies.
    *
-   * @param c - The existing script dependencies.
+   * @param deps - The existing script dependencies.
    * @param daoManager - The DAO manager for handling deposits and receipts.
    * @param udtHandler - The handler for User Defined Tokens (UDTs).
    * @returns An instance of LogicManager.
    */
   static fromDeps(
-    c: ScriptDeps,
+    deps: ScriptDeps,
     daoManager: DaoManager,
     udtHandler: UdtHandler,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._: never[]
   ): LogicManager {
-    return new LogicManager(c.script, c.cellDeps, daoManager, udtHandler);
+    return new LogicManager(deps.script, deps.cellDeps, daoManager, udtHandler);
   }
 
   /**
@@ -172,7 +174,7 @@ export class LogicManager implements ScriptDeps {
    * @param {ccc.ClientBlockHeaderLike} [options.tip] - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.
    * @param {boolean} [options.onChain] - A flag indicating whether to search for on-chain deposits.
    *
-   * @returns {AsyncGenerator<iCKBDepositCell>} An asynchronous generator that yields iCKB deposit cells.
+   * @returns {AsyncGenerator<IckbDepositCell>} An asynchronous generator that yields iCKB deposit cells.
    */
   async *findDeposits(
     client: ccc.Client,
@@ -180,7 +182,7 @@ export class LogicManager implements ScriptDeps {
       tip?: ccc.ClientBlockHeaderLike;
       onChain?: boolean;
     },
-  ): AsyncGenerator<iCKBDepositCell> {
+  ): AsyncGenerator<IckbDepositCell> {
     const tip = options?.tip
       ? ccc.ClientBlockHeader.from(options.tip)
       : await client.getTipHeader();
@@ -191,7 +193,7 @@ export class LogicManager implements ScriptDeps {
       [this.script],
       options,
     )) {
-      yield iCKBDepositCellFrom(deposit);
+      yield ickbDepositCellFrom(deposit);
     }
   }
 }
