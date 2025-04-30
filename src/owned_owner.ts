@@ -2,11 +2,7 @@ import { ccc } from "@ckb-ccc/core";
 import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
 import { daoCellFrom, DaoManager } from "@ickb/dao";
 import { OwnerData } from "./entities.js";
-import {
-  OwnerCell,
-  type IckbDepositCell,
-  type WithdrawalGroups,
-} from "./cells.js";
+import { OwnerCell, WithdrawalGroup, type IckbDepositCell } from "./cells.js";
 
 /**
  * Manages ownership and withdrawal operations for owned cells.
@@ -138,7 +134,7 @@ export class OwnedOwnerManager implements ScriptDeps {
    */
   withdraw(
     tx: SmartTransaction,
-    withdrawalGroups: WithdrawalGroups[],
+    withdrawalGroups: WithdrawalGroup[],
     options?: {
       isReadyOnly?: boolean;
     },
@@ -185,7 +181,7 @@ export class OwnedOwnerManager implements ScriptDeps {
       tip?: ccc.ClientBlockHeader;
       onChain?: boolean;
     },
-  ): AsyncGenerator<WithdrawalGroups> {
+  ): AsyncGenerator<WithdrawalGroup> {
     const tip = options?.tip ?? (await client.getTipHeader());
     for (const lock of locks) {
       const findCellsArgs = [
@@ -216,7 +212,7 @@ export class OwnedOwnerManager implements ScriptDeps {
           client,
           tip,
         });
-        yield { owned, owner };
+        yield new WithdrawalGroup(owned, owner);
       }
     }
   }

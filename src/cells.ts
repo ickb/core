@@ -1,23 +1,26 @@
 import { ccc } from "@ckb-ccc/core";
-import { getHeader, type TransactionHeader } from "@ickb/utils";
+import {
+  getHeader,
+  type TransactionHeader,
+  type ValueComponents,
+} from "@ickb/utils";
 import { OwnerData, ReceiptData } from "./entities.js";
 import { ickbValue } from "./udt.js";
 import { daoCellFrom, type DaoCell } from "@ickb/dao";
 
-/**
- * Class representing an iCKB deposit cell, which extends the DaoCell interface.
- * This class adds functionality specific to iCKB deposits, including the calculation of the iCKB value.
- */
 export interface IckbDepositCell extends DaoCell {
   /**
-   * The iCKB value associated with this deposit cell.
-   * This value is calculated based on the cell's free capacity and the deposit transaction header.
+   * A symbol property indicating that this cell is a Ickb Deposit Cell.
+   * This property is always set to true.
    */
-  udtValue: ccc.FixedPoint;
+  [isIckbDepositSymbol]: true;
 }
 
+// Symbol to represent the isIckbDeposit property of Ickb Deposit Cells
+const isIckbDepositSymbol = Symbol("isIckbDeposit");
+
 /**
- * Creates an iCKBDepositCell instance from the provided parameters.
+ * Creates an IckbDepositCell from the provided parameters.
  *
  * @param options - The options to create a DaoCell. It can be one of the following:
  * - An object omitting "interests" and "maturity" from DaoCell.
@@ -25,7 +28,7 @@ export interface IckbDepositCell extends DaoCell {
  * - An object containing an outpoint, isDeposit flag, client, and an optional tip.
  * - an instance of `DaoCell`.
  *
- * @returns A promise that resolves to an iCKBDepositCell instance.
+ * @returns A promise that resolves to a IckbDepositCell instance.
  *
  * @throws Error if the cell is not found.
  */
@@ -36,24 +39,19 @@ export async function ickbDepositCellFrom(
   return {
     ...daoCell,
     udtValue: ickbValue(daoCell.cell.capacityFree, daoCell.headers[0].header),
+    [isIckbDepositSymbol]: true,
   };
 }
 
 /**
  * Represents a receipt cell containing the receipt for iCKB Deposits.
  */
-export interface ReceiptCell {
+export interface ReceiptCell extends ValueComponents {
   /** The cell associated with the receipt. */
   cell: ccc.Cell;
 
   /** The transaction header associated with the receipt cell. */
   header: TransactionHeader;
-
-  /**
-   * The iCKB value associated with this receipt cell.
-   * This value is calculated based on the deposit amount and quantity from the receipt data.
-   */
-  udtValue: ccc.FixedPoint;
 }
 
 /**
@@ -96,24 +94,46 @@ export async function receiptCellFrom(
   return {
     cell,
     header,
+    ckbValue: cell.cellOutput.capacity,
     udtValue: ickbValue(depositAmount, header.header) * depositQuantity,
   };
 }
 
 /**
- * Represents a WithdrawalGroups
+ * Represents a WithdrawalGroup
+ *
+ * @property owned - The DAO withdrawal request cell associated with the group.
+ * @property owner - The owner cell associated with the group.
  */
-export interface WithdrawalGroups {
-  /** The DAO withdrawal request cell associated with the group. */
-  owned: DaoCell;
-  /** The owner cell associated with the group. */
-  owner: OwnerCell;
+export class WithdrawalGroup implements ValueComponents {
+  constructor(
+    public owned: DaoCell,
+    public owner: OwnerCell,
+  ) {}
+
+  /**
+   * Gets the CKB value of the group.
+   *
+   * @returns The total CKB amount as a `ccc.Num`, which is the sum of the CKB values of the owned cell and the owner cell.
+   */
+  get ckbValue(): ccc.Num {
+    return this.owned.ckbValue + this.owner.cell.cellOutput.capacity;
+  }
+
+  /**
+   * Gets the UDT value of the group.
+   *
+   * @returns The UDT amount as a `ccc.Num`, derived from the owned cell.
+   */
+  get udtValue(): ccc.Num {
+    return this.owned.udtValue;
+  }
 }
 
 /**
  * Represents a cell that contains ownership information.
  */
-export class OwnerCell {
+export class OwnerCell implements ValueComponents {
   /**
    * Creates an instance of OwnerCell.
    *
@@ -122,9 +142,27 @@ export class OwnerCell {
   constructor(public cell: ccc.Cell) {}
 
   /**
+   * Gets the CKB value of the cell.
+   *
+   * @returns The CKB amount as a `ccc.Num`.
+   */
+  get ckbValue(): ccc.Num {
+    return this.cell.cellOutput.capacity;
+  }
+
+  /**
+   * Gets the UDT value of the cell.
+   *
+   * @returns The UDT amount as a `ccc.Num`, which is always zero for this cell.
+   */
+  get udtValue(): ccc.Num {
+    return ccc.Zero;
+  }
+
+  /**
    * Retrieves the out point of the owned cell based on the owner's distance.
    *
-   * @returns The out point of the owned cell.
+   * @returns The out point of the owned cell as a `ccc.OutPoint`.
    */
   getOwned(): ccc.OutPoint {
     const { txHash, index } = this.cell.outPoint;

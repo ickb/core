@@ -12,11 +12,11 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0(typescript@5.8.3)
       '@ickb/dao':
-        specifier: ^1000.0.35
-        version: 1000.0.35(typescript@5.8.3)
+        specifier: ^1000.0.41
+        version: 1000.0.41(typescript@5.8.3)
       '@ickb/utils':
-        specifier: ^1000.0.36
-        version: 1000.0.36(typescript@5.8.3)
+        specifier: ^1000.0.41
+        version: 1000.0.41(typescript@5.8.3)
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.1
@@ -100,11 +100,11 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@ickb/dao@1000.0.35':
-    resolution: {integrity: sha512-WMrUqZpQpp9mjTMfMZkP2sF+a/Vviaca87CAMpDAWMP5XejS+1rOEhzFNURDhDBv6OkkuO/4Yle7+H8Pqy4afQ==}
+  '@ickb/dao@1000.0.41':
+    resolution: {integrity: sha512-h71donPknKBfUZv3TmwPRvOIJZzoo8ebY0fMxuGF5hZ5P/ckMt7c/18+K1JCfOE79NMnHNNGoV+V2owtKCnNpw==}
 
-  '@ickb/utils@1000.0.36':
-    resolution: {integrity: sha512-cPy54N1GJMkZrU/bDPAcUVeeLFaHvParqRs+DIq9Ct1oQ+OqyWmK97wf0FURFItvVrxZoSDWAM5SjfLJyNMu5g==}
+  '@ickb/utils@1000.0.41':
+    resolution: {integrity: sha512-wMzBB3mIr3jxfp8kfHxqitutSYdoJ2vQBsfj770lQNbw/kk/qgDd0/XDQTueyTBBcxj1mDpupN+jGe7uCIEZtw==}
 
   '@joyid/ckb@1.1.2':
     resolution: {integrity: sha512-+e+ISF566zaKNhKNSSS5kBw8or4Kb5Xqxe/2jVkUXKkqVHSS02Trrqe0g4IjSyeN9bszzolr1XgStv2hz62tqA==}
@@ -877,10 +877,10 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
-  '@ickb/dao@1000.0.35(typescript@5.8.3)':
+  '@ickb/dao@1000.0.41(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
-      '@ickb/utils': 1000.0.36(typescript@5.8.3)
+      '@ickb/utils': 1000.0.41(typescript@5.8.3)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -888,7 +888,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@ickb/utils@1000.0.36(typescript@5.8.3)':
+  '@ickb/utils@1000.0.41(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
     transitivePeerDependencies:
