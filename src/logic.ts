@@ -95,6 +95,10 @@ export class LogicManager implements ScriptDeps {
       throw Error("iCKB deposit minimum is 1082 CKB");
     }
 
+    if (depositAmount > ccc.fixedPointFrom(1000082)) {
+      throw Error("iCKB deposit minimum is 1082 CKB");
+    }
+
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
 
