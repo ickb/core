@@ -119,6 +119,12 @@ export class OwnedOwnerManager implements ScriptDeps {
         outputData,
       );
     }
+
+    // Check that there are at most 64 output cells, see:
+    // https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0023-dao-deposit-withdraw/0023-dao-deposit-withdraw.md#gotchas
+    if (tx.outputs.length > 64) {
+      throw Error("More than 64 output cells in a NervosDAO transaction");
+    }
   }
 
   /**
@@ -154,6 +160,12 @@ export class OwnedOwnerManager implements ScriptDeps {
 
     for (const { owner } of withdrawalGroups) {
       tx.addInput(owner.cell);
+    }
+
+    // Check that there are at most 64 output cells, see:
+    // https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0023-dao-deposit-withdraw/0023-dao-deposit-withdraw.md#gotchas
+    if (tx.outputs.length > 64) {
+      throw Error("More than 64 output cells in a NervosDAO transaction");
     }
   }
 
