@@ -22,10 +22,10 @@ export class OwnedOwnerManager implements ScriptDeps {
    * @param udtHandler - The handler for User Defined Tokens (UDTs).
    */
   constructor(
-    public script: ccc.Script,
-    public cellDeps: ccc.CellDep[],
-    public daoManager: DaoManager,
-    public udtHandler: UdtHandler,
+    public readonly script: ccc.Script,
+    public readonly cellDeps: ccc.CellDep[],
+    public readonly daoManager: DaoManager,
+    public readonly udtHandler: UdtHandler,
   ) {}
 
   /**
@@ -87,7 +87,7 @@ export class OwnedOwnerManager implements ScriptDeps {
   requestWithdrawal(
     tx: SmartTransaction,
     deposits: IckbDepositCell[],
-    lock: ccc.ScriptLike,
+    lock: ccc.Script,
   ): void {
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
@@ -136,7 +136,7 @@ export class OwnedOwnerManager implements ScriptDeps {
    */
   async *findWithdrawalGroups(
     client: ccc.Client,
-    locks: ccc.ScriptLike[],
+    locks: ccc.Script[],
     options?: {
       tip?: ccc.ClientBlockHeader;
       onChain?: boolean;

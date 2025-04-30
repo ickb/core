@@ -9,12 +9,12 @@ import {
 } from "@ickb/utils";
 
 /**
- * IckbManager is a class that implements the UdtHandler interface.
+ * IckbUdtManager is a class that implements the UdtHandler interface.
  * It is responsible for handling UDT (User Defined Token) operations related to iCKB.
  */
-export class IckbManager extends UdtManager implements UdtHandler {
+export class IckbUdtManager extends UdtManager implements UdtHandler {
   /**
-   * Creates an instance of IckbManager.
+   * Creates an instance of IckbUdtManager.
    * @param script - The script associated with the UDT.
    * @param cellDeps - An array of cell dependencies.
    * @param daoManager - The DAO manager instance.
@@ -22,24 +22,24 @@ export class IckbManager extends UdtManager implements UdtHandler {
   constructor(
     script: ccc.Script,
     cellDeps: ccc.CellDep[],
-    public daoManager: DaoManager,
+    public readonly daoManager: DaoManager,
   ) {
     super(script, cellDeps);
   }
 
   /**
-   * Creates an instance of IckbManager from script dependencies and a DAO manager.
+   * Creates an instance of IckbUdtManager from script dependencies and a DAO manager.
    * @param deps - The script dependencies.
    * @param daoManager - The DAO manager instance.
-   * @returns An instance of IckbManager.
+   * @returns An instance of IckbUdtManager.
    */
   static override fromDeps(
     deps: ScriptDeps,
     daoManager: DaoManager,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ..._: never[]
-  ): IckbManager {
-    return new IckbManager(deps.script, deps.cellDeps, daoManager);
+  ): IckbUdtManager {
+    return new IckbUdtManager(deps.script, deps.cellDeps, daoManager);
   }
 
   /**
@@ -160,8 +160,8 @@ export function convert(
   amount: ccc.FixedPoint,
   ratioLike:
     | {
-        ckbScale: ccc.Num;
-        udtScale: ccc.Num;
+        ckbScale: ccc.NumLike;
+        udtScale: ccc.NumLike;
       }
     | {
         header: ccc.ClientBlockHeader;
@@ -170,7 +170,10 @@ export function convert(
 ): ccc.FixedPoint {
   const { ckbScale, udtScale } =
     "udtScale" in ratioLike
-      ? ratioLike
+      ? {
+          ckbScale: ccc.numFrom(ratioLike.ckbScale),
+          udtScale: ccc.numFrom(ratioLike.udtScale),
+        }
       : ickbExchangeRatio(ratioLike.header, ratioLike.accountDepositCapacity);
 
   return isCkb2Udt

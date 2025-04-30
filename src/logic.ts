@@ -27,10 +27,10 @@ export class LogicManager implements ScriptDeps {
    * @param udtHandler - The handler for User Defined Tokens (UDTs).
    */
   constructor(
-    public script: ccc.Script,
-    public cellDeps: ccc.CellDep[],
-    public daoManager: DaoManager,
-    public udtHandler: UdtHandler,
+    public readonly script: ccc.Script,
+    public readonly cellDeps: ccc.CellDep[],
+    public readonly daoManager: DaoManager,
+    public readonly udtHandler: UdtHandler,
   ) {}
 
   /**
@@ -83,9 +83,9 @@ export class LogicManager implements ScriptDeps {
    */
   deposit(
     tx: SmartTransaction,
-    depositQuantity: ccc.NumLike,
-    depositAmount: ccc.FixedPointLike,
-    lock: ccc.ScriptLike,
+    depositQuantity: ccc.Num,
+    depositAmount: ccc.FixedPoint,
+    lock: ccc.Script,
   ): void {
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
@@ -134,7 +134,7 @@ export class LogicManager implements ScriptDeps {
    */
   async *findReceipts(
     client: ccc.Client,
-    locks: ccc.ScriptLike[],
+    locks: ccc.Script[],
     options?: {
       onChain?: boolean;
     },
