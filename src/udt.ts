@@ -122,10 +122,7 @@ export function ickbValue(
   ckbUnoccupiedCapacity: ccc.FixedPoint,
   header: ccc.ClientBlockHeader,
 ): ccc.FixedPoint {
-  let ickbAmount = convert(true, ckbUnoccupiedCapacity, {
-    header,
-    accountDepositCapacity: false,
-  });
+  let ickbAmount = convert(true, ckbUnoccupiedCapacity, header, false);
   if (ICKB_DEPOSIT_CAP < ickbAmount) {
     // Apply a 10% discount for the amount exceeding the soft iCKB cap per deposit.
     ickbAmount -= (ickbAmount - ICKB_DEPOSIT_CAP) / 10n;
@@ -142,29 +139,31 @@ export const ICKB_DEPOSIT_CAP = ccc.fixedPointFrom(100000); // 100,000 iCKB
  *
  * @param isCkb2Udt - A boolean indicating the direction of conversion (CKB to iCKB or vice versa).
  * @param amount - The amount to convert.
- * @param ratioLike - The ratio information for conversion, which can be either a scale or header information.
- * @returns The converted amount in the target unit.
+ * @param rate - The ratio information for conversion, which can be either:
+ *   - An object containing `ckbScale` and `udtScale`.
+ *   - A `ccc.ClientBlockHeader` for header information.
+ * @param accountDepositCapacity - A boolean indicating whether to account for deposit capacity
+ *  when using ccc.ClientBlockHeader (default: true).
+ * @returns The converted amount in the target unit as a `ccc.FixedPoint`.
  */
 export function convert(
   isCkb2Udt: boolean,
   amount: ccc.FixedPoint,
-  ratioLike:
+  rate:
     | {
         ckbScale: ccc.NumLike;
         udtScale: ccc.NumLike;
       }
-    | {
-        header: ccc.ClientBlockHeader;
-        accountDepositCapacity?: boolean;
-      },
+    | ccc.ClientBlockHeader,
+  accountDepositCapacity = true,
 ): ccc.FixedPoint {
   const { ckbScale, udtScale } =
-    "udtScale" in ratioLike
+    "udtScale" in rate
       ? {
-          ckbScale: ccc.numFrom(ratioLike.ckbScale),
-          udtScale: ccc.numFrom(ratioLike.udtScale),
+          ckbScale: ccc.numFrom(rate.ckbScale),
+          udtScale: ccc.numFrom(rate.udtScale),
         }
-      : ickbExchangeRatio(ratioLike.header, ratioLike.accountDepositCapacity);
+      : ickbExchangeRatio(rate, accountDepositCapacity);
 
   return isCkb2Udt
     ? (amount * ckbScale) / udtScale
