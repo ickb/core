@@ -138,16 +138,6 @@ export function ickbValue(
 export const ICKB_DEPOSIT_CAP = ccc.fixedPointFrom(100000); // 100,000 iCKB
 
 /**
- * Calculates the CKB deposit cap based on the block header.
- *
- * @param header - The block header used for conversion.
- * @returns The calculated CKB deposit cap.
- */
-export function ckbDepositCap(header: ccc.ClientBlockHeader): ccc.FixedPoint {
-  return convert(false, ICKB_DEPOSIT_CAP, { header });
-}
-
-/**
  * Converts between CKB and iCKB based on the provided ratio.
  *
  * @param isCkb2Udt - A boolean indicating the direction of conversion (CKB to iCKB or vice versa).

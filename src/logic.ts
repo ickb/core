@@ -87,6 +87,14 @@ export class LogicManager implements ScriptDeps {
     depositAmount: ccc.FixedPoint,
     lock: ccc.Script,
   ): void {
+    if (depositQuantity <= 0) {
+      return;
+    }
+
+    if (depositAmount < ccc.fixedPointFrom(1082)) {
+      throw Error("iCKB deposit minimum is 1082 CKB");
+    }
+
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
 
@@ -113,6 +121,10 @@ export class LogicManager implements ScriptDeps {
    * @param receipts - The receipts to add to the transaction.
    */
   completeDeposit(tx: SmartTransaction, receipts: ReceiptCell[]): void {
+    if (receipts.length === 0) {
+      return;
+    }
+
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
 

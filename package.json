@@ -1,6 +1,6 @@
 {
   "name": "@ickb/core",
-  "version": "1000.0.32",
+  "version": "1000.0.36",
   "description": "iCKB Core utils built on top of CCC",
   "author": "phroi",
   "license": "MIT",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@ckb-ccc/core": "^1.8.0",
-    "@ickb/dao": "^1000.0.31",
-    "@ickb/utils": "^1000.0.31"
+    "@ickb/dao": "^1000.0.35",
+    "@ickb/utils": "^1000.0.36"
   }
 }

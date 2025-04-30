@@ -60,7 +60,7 @@ export class OwnedOwnerManager implements ScriptDeps {
   isOwner(cell: ccc.Cell): boolean {
     return (
       Boolean(cell.cellOutput.type?.eq(this.script)) &&
-      !!OwnerData.decodePrefix(cell.outputData)
+      cell.outputData.length >= 10
     );
   }
 
@@ -83,16 +83,30 @@ export class OwnedOwnerManager implements ScriptDeps {
    * @param tx - The transaction to add the withdrawal request to.
    * @param deposits - The deposits to withdraw.
    * @param lock - The lock script for the output.
+   * @param options - Optional parameters for the withdrawal request.
+   * @param options.isReadyOnly - Whether to only process ready deposits (default: false).
+   * @returns void
    */
   requestWithdrawal(
     tx: SmartTransaction,
     deposits: IckbDepositCell[],
     lock: ccc.Script,
+    options?: {
+      isReadyOnly?: boolean;
+    },
   ): void {
+    const isReadyOnly = options?.isReadyOnly ?? false;
+    if (isReadyOnly) {
+      deposits = deposits.filter((d) => d.isReady);
+    }
+    if (deposits.length === 0) {
+      return;
+    }
+    options = { ...options, isReadyOnly: false }; // non isReady deposits already filtered
+
+    this.daoManager.requestWithdrawal(tx, deposits, this.script, options);
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
-
-    this.daoManager.requestWithdrawal(tx, deposits, this.script);
 
     const outputData = OwnerData.encode({ ownedDistance: -deposits.length });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -108,12 +122,30 @@ export class OwnedOwnerManager implements ScriptDeps {
   }
 
   /**
-   * Complete the withdraws of the specified withdrawal groups.
+   * Completes the withdrawals of the specified withdrawal groups.
    *
    * @param tx - The transaction to add the withdrawals to.
    * @param withdrawalGroups - The withdrawal groups to process.
+   * @param options - Optional parameters for the withdrawal process.
+   * @param options.isReadyOnly - Whether to only process ready withdrawal groups (default: false).
+   * @returns void
    */
-  withdraw(tx: SmartTransaction, withdrawalGroups: WithdrawalGroups[]): void {
+  withdraw(
+    tx: SmartTransaction,
+    withdrawalGroups: WithdrawalGroups[],
+    options?: {
+      isReadyOnly?: boolean;
+    },
+  ): void {
+    const isReadyOnly = options?.isReadyOnly ?? false;
+    if (isReadyOnly) {
+      withdrawalGroups = withdrawalGroups.filter((g) => g.owned.isReady);
+    }
+    if (withdrawalGroups.length === 0) {
+      return;
+    }
+    options = { ...options, isReadyOnly: false }; // non isReady deposits already filtered
+
     tx.addCellDeps(this.cellDeps);
     tx.addUdtHandlers(this.udtHandler);
 
