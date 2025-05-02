@@ -15,8 +15,8 @@ importers:
         specifier: ^1000.0.41
         version: 1000.0.41(typescript@5.8.3)
       '@ickb/utils':
-        specifier: ^1000.0.41
-        version: 1000.0.41(typescript@5.8.3)
+        specifier: ^1000.0.43
+        version: 1000.0.43(typescript@5.8.3)
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.1
@@ -56,8 +56,8 @@ packages:
     resolution: {integrity: sha512-fxlS1kkIjx8+vy2SjuCB94q3htSNrufYTXubwiBFeaQHbH6Ipi43gFJq2zCMt6PHhImH3Xmr0NksKDvchWlpQQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@eslint/config-helpers@0.2.1':
-    resolution: {integrity: sha512-RI17tsD2frtDu/3dmI7QRrD4bedNKPM08ziRYaC5AhkGrzIAJelm9kJU1TznK+apx6V+cqRz8tfpEeG3oIyjxw==}
+  '@eslint/config-helpers@0.2.2':
+    resolution: {integrity: sha512-+GPzk8PlG0sPpzdU5ZvIRMPidzAnZDl/s9L+y13iodqvb8leL53bTannOrQ/Im7UkpsmFU5Ily5U60LWixnmLg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/core@0.13.0':
@@ -103,8 +103,8 @@ packages:
   '@ickb/dao@1000.0.41':
     resolution: {integrity: sha512-h71donPknKBfUZv3TmwPRvOIJZzoo8ebY0fMxuGF5hZ5P/ckMt7c/18+K1JCfOE79NMnHNNGoV+V2owtKCnNpw==}
 
-  '@ickb/utils@1000.0.41':
-    resolution: {integrity: sha512-wMzBB3mIr3jxfp8kfHxqitutSYdoJ2vQBsfj770lQNbw/kk/qgDd0/XDQTueyTBBcxj1mDpupN+jGe7uCIEZtw==}
+  '@ickb/utils@1000.0.43':
+    resolution: {integrity: sha512-SdRGenvxsXcLtcg0aoCS+vFCVfveb/cnT1qhn/XW2ja2GQP6Kre86GX9WsoKeE32CCIQAsbHj8NSzX5F9AtzUQ==}
 
   '@joyid/ckb@1.1.2':
     resolution: {integrity: sha512-+e+ISF566zaKNhKNSSS5kBw8or4Kb5Xqxe/2jVkUXKkqVHSS02Trrqe0g4IjSyeN9bszzolr1XgStv2hz62tqA==}
@@ -835,7 +835,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@eslint/config-helpers@0.2.1': {}
+  '@eslint/config-helpers@0.2.2': {}
 
   '@eslint/core@0.13.0':
     dependencies:
@@ -880,7 +880,7 @@ snapshots:
   '@ickb/dao@1000.0.41(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
-      '@ickb/utils': 1000.0.41(typescript@5.8.3)
+      '@ickb/utils': 1000.0.43(typescript@5.8.3)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -888,7 +888,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@ickb/utils@1000.0.41(typescript@5.8.3)':
+  '@ickb/utils@1000.0.43(typescript@5.8.3)':
     dependencies:
       '@ckb-ccc/core': 1.8.0(typescript@5.8.3)
     transitivePeerDependencies:
@@ -1245,7 +1245,7 @@ snapshots:
       '@eslint-community/eslint-utils': 4.6.1(eslint@9.25.1)
       '@eslint-community/regexpp': 4.12.1
       '@eslint/config-array': 0.20.0
-      '@eslint/config-helpers': 0.2.1
+      '@eslint/config-helpers': 0.2.2
       '@eslint/core': 0.13.0
       '@eslint/eslintrc': 3.3.1
       '@eslint/js': 9.25.1

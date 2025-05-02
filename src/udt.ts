@@ -3,6 +3,7 @@ import { ReceiptData } from "./entities.js";
 import type { DaoManager } from "@ickb/dao";
 import {
   UdtManager,
+  type ExchangeRatio,
   type ScriptDeps,
   type SmartTransaction,
   type UdtHandler,
@@ -149,25 +150,15 @@ export const ICKB_DEPOSIT_CAP = ccc.fixedPointFrom(100000); // 100,000 iCKB
 export function convert(
   isCkb2Udt: boolean,
   amount: ccc.FixedPoint,
-  rate:
-    | {
-        ckbScale: ccc.NumLike;
-        udtScale: ccc.NumLike;
-      }
-    | ccc.ClientBlockHeader,
+  rate: ExchangeRatio | ccc.ClientBlockHeader,
   accountDepositCapacity = true,
 ): ccc.FixedPoint {
-  const { ckbScale, udtScale } =
-    "udtScale" in rate
-      ? {
-          ckbScale: ccc.numFrom(rate.ckbScale),
-          udtScale: ccc.numFrom(rate.udtScale),
-        }
-      : ickbExchangeRatio(rate, accountDepositCapacity);
-
+  if ("dao" in rate) {
+    rate = ickbExchangeRatio(rate, accountDepositCapacity);
+  }
   return isCkb2Udt
-    ? (amount * ckbScale) / udtScale
-    : (amount * udtScale) / ckbScale;
+    ? (amount * rate.ckbScale) / rate.udtScale
+    : (amount * rate.udtScale) / rate.ckbScale;
 }
 
 /**
@@ -180,10 +171,7 @@ export function convert(
 export function ickbExchangeRatio(
   header: ccc.ClientBlockHeader,
   accountDepositCapacity = true,
-): {
-  ckbScale: ccc.Num;
-  udtScale: ccc.Num;
-} {
+): ExchangeRatio {
   const AR_m = header.dao.ar;
   return {
     ckbScale: AR_0,
