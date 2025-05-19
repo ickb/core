@@ -36,19 +36,29 @@ export class LogicManager implements ScriptDeps {
   /**
    * Creates an instance of LogicManager from existing dependencies.
    *
-   * @param deps - The existing script dependencies.
+   * @param deps - The script dependencies.
+   * @param deps.ickbLogic - The script dependencies for iCKB logic.
    * @param daoManager - The DAO manager for handling deposits and receipts.
    * @param udtHandler - The handler for User Defined Tokens (UDTs).
    * @returns An instance of LogicManager.
    */
   static fromDeps(
-    deps: ScriptDeps,
+    {
+      ickbLogic,
+    }: {
+      ickbLogic: ScriptDeps;
+    },
     daoManager: DaoManager,
     udtHandler: UdtHandler,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ..._: never[]
   ): LogicManager {
-    return new LogicManager(deps.script, deps.cellDeps, daoManager, udtHandler);
+    return new LogicManager(
+      ickbLogic.script,
+      ickbLogic.cellDeps,
+      daoManager,
+      udtHandler,
+    );
   }
 
   /**
