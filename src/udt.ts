@@ -18,11 +18,13 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
    * Creates an instance of IckbUdtManager.
    * @param script - The script associated with the UDT.
    * @param cellDeps - An array of cell dependencies.
+   * @param logicScript - The iCKB Logic script.
    * @param daoManager - The DAO manager instance.
    */
   constructor(
     script: ccc.Script,
     cellDeps: ccc.CellDep[],
+    public readonly logicScript: ccc.Script,
     public readonly daoManager: DaoManager,
   ) {
     super(script, cellDeps);
@@ -39,7 +41,7 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
   static override fromDeps(
     deps: {
       udt: ScriptDeps;
-      ickbLogic: ScriptDeps;
+      ickbLogic: { script: ccc.Script };
     },
     daoManager: DaoManager,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,14 +52,14 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
         script: { codeHash, hashType },
         cellDeps,
       },
-      ickbLogic: { script: ickbLogicScript },
+      ickbLogic: { script: logicScript },
     } = deps;
     const udtScript = new ccc.Script(
       codeHash,
       hashType,
-      [ickbLogicScript.hash(), "00000080"].join("") as ccc.Hex,
+      [logicScript.hash(), "00000080"].join("") as ccc.Hex,
     );
-    return new IckbUdtManager(udtScript, cellDeps, daoManager);
+    return new IckbUdtManager(udtScript, cellDeps, logicScript, daoManager);
   }
 
   /**
@@ -71,7 +73,6 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
     client: ccc.Client,
     tx: SmartTransaction,
   ): Promise<ccc.FixedPoint> {
-    const iCKBHash = this.script.args.slice(0, 66);
     return ccc.reduceAsync(
       tx.inputs,
       async (acc, input) => {
@@ -98,7 +99,7 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
         }
 
         // An iCKB Receipt
-        if (type.hash() === iCKBHash) {
+        if (this.logicScript.eq(type)) {
           // Get header of Receipt cell and check its inclusion in HeaderDeps
           const header = await tx.getHeader(client, {
             type: "txHash",
@@ -112,7 +113,7 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
         }
 
         // An iCKB Deposit for which the withdrawal is being requested
-        if (lock.hash() === iCKBHash && this.daoManager.isDeposit(cell)) {
+        if (this.logicScript.eq(lock) && this.daoManager.isDeposit(cell)) {
           // Get header of Deposit cell and check its inclusion in HeaderDeps
           const header = await tx.getHeader(client, {
             type: "txHash",
