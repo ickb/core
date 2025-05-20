@@ -31,21 +31,33 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
   /**
    * Creates an instance of IckbUdtManager from script dependencies and a DAO manager.
    * @param deps - The script dependencies.
-   * @param deps.udt - The script dependencies for UDT.
+   * @param deps.udt - The script dependencies for UDT (args is recalculated from ickbLogic).
+   * @param deps.ickbLogic - The script dependencies for iCKB logic.
    * @param daoManager - The DAO manager instance.
    * @returns An instance of IckbUdtManager.
    */
   static override fromDeps(
-    {
-      udt,
-    }: {
+    deps: {
       udt: ScriptDeps;
+      ickbLogic: ScriptDeps;
     },
     daoManager: DaoManager,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ..._: never[]
   ): IckbUdtManager {
-    return new IckbUdtManager(udt.script, udt.cellDeps, daoManager);
+    const {
+      udt: {
+        script: { codeHash, hashType },
+        cellDeps,
+      },
+      ickbLogic: { script: ickbLogicScript },
+    } = deps;
+    const udtScript = new ccc.Script(
+      codeHash,
+      hashType,
+      [ickbLogicScript.hash(), "00000080"].join("") as ccc.Hex,
+    );
+    return new IckbUdtManager(udtScript, cellDeps, daoManager);
   }
 
   /**

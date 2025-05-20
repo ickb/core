@@ -1,6 +1,6 @@
 {
   "name": "@ickb/core",
-  "version": "1000.0.52",
+  "version": "1000.0.53",
   "description": "iCKB Core utils built on top of CCC",
   "author": "phroi",
   "license": "MIT",
