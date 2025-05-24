@@ -1,5 +1,10 @@
 import { ccc } from "@ckb-ccc/core";
-import type { ScriptDeps, SmartTransaction, UdtHandler } from "@ickb/utils";
+import {
+  unique,
+  type ScriptDeps,
+  type SmartTransaction,
+  type UdtHandler,
+} from "@ickb/utils";
 import { daoCellFrom, DaoManager } from "@ickb/dao";
 import { OwnerData } from "./entities.js";
 import { OwnerCell, WithdrawalGroup, type IckbDepositCell } from "./cells.js";
@@ -184,7 +189,7 @@ export class OwnedOwnerManager implements ScriptDeps {
     },
   ): AsyncGenerator<WithdrawalGroup> {
     const tip = options?.tip ?? (await client.getTipHeader());
-    for (const lock of locks) {
+    for (const lock of unique(locks)) {
       const findCellsArgs = [
         {
           script: lock,

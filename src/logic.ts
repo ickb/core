@@ -1,5 +1,6 @@
 import { ccc } from "@ckb-ccc/core";
 import {
+  unique,
   type ScriptDeps,
   type SmartTransaction,
   type UdtHandler,
@@ -171,7 +172,7 @@ export class LogicManager implements ScriptDeps {
       onChain?: boolean;
     },
   ): AsyncGenerator<ReceiptCell> {
-    for (const lock of locks) {
+    for (const lock of unique(locks)) {
       const findCellsArgs = [
         {
           script: lock,
