@@ -1,6 +1,6 @@
 {
   "name": "@ickb/core",
-  "version": "1000.0.61",
+  "version": "1000.0.71",
   "description": "iCKB Core utils built on top of CCC",
   "author": "phroi",
   "license": "MIT",
@@ -34,11 +34,11 @@
     "eslint": "^9.27.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1"
+    "typescript-eslint": "^8.33.0"
   },
   "dependencies": {
     "@ckb-ccc/core": "^1.8.1",
-    "@ickb/dao": "^1000.0.60",
-    "@ickb/utils": "^1000.0.61"
+    "@ickb/dao": "^1000.0.71",
+    "@ickb/utils": "^1000.0.71"
   }
 }

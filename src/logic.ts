@@ -1,6 +1,7 @@
 import { ccc } from "@ckb-ccc/core";
 import {
   unique,
+  type Epoch,
   type ScriptDeps,
   type SmartTransaction,
   type UdtHandler,
@@ -206,8 +207,8 @@ export class LogicManager implements ScriptDeps {
    * @param {Object} [options] - Optional parameters for the deposit search.
    * @param {ccc.ClientBlockHeader} [options.tip] - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.
    * @param {boolean} [options.onChain] - A flag indicating whether to search for on-chain deposits.
-   * @param {ccc.Epoch} [options.minLockUp] - An optional minimum lock-up period in epochs (Default 15 minutes)
-   * @param {ccc.Epoch} [options.maxLockUp] An optional maximum lock-up period in epochs (Default 3 days)
+   * @param {Epoch} [options.minLockUp] - An optional minimum lock-up period in epochs (Default 10 minutes)
+   * @param {Epoch} [options.maxLockUp] An optional maximum lock-up period in epochs (Default 3 days)
    *
    * @returns {AsyncGenerator<IckbDepositCell>} An asynchronous generator that yields iCKB deposit cells.
    */
@@ -216,8 +217,8 @@ export class LogicManager implements ScriptDeps {
     options?: {
       tip?: ccc.ClientBlockHeader;
       onChain?: boolean;
-      minLockUp?: ccc.Epoch;
-      maxLockUp?: ccc.Epoch;
+      minLockUp?: Epoch;
+      maxLockUp?: Epoch;
     },
   ): AsyncGenerator<IckbDepositCell> {
     const tip = options?.tip

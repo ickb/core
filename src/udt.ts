@@ -125,7 +125,7 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
 
         return acc;
       },
-      ccc.Zero,
+      0n,
     );
   }
 }

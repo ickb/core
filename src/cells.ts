@@ -114,18 +114,18 @@ export class WithdrawalGroup implements ValueComponents {
   /**
    * Gets the CKB value of the group.
    *
-   * @returns The total CKB amount as a `ccc.Num`, which is the sum of the CKB values of the owned cell and the owner cell.
+   * @returns The total CKB amount as a `ccc.FixedPoint`, which is the sum of the CKB values of the owned cell and the owner cell.
    */
-  get ckbValue(): ccc.Num {
+  get ckbValue(): ccc.FixedPoint {
     return this.owned.ckbValue + this.owner.cell.cellOutput.capacity;
   }
 
   /**
    * Gets the UDT value of the group.
    *
-   * @returns The UDT amount as a `ccc.Num`, derived from the owned cell.
+   * @returns The UDT amount as a `ccc.FixedPoint`, derived from the owned cell.
    */
-  get udtValue(): ccc.Num {
+  get udtValue(): ccc.FixedPoint {
     return this.owned.udtValue;
   }
 }
@@ -144,23 +144,26 @@ export class OwnerCell implements ValueComponents {
   /**
    * Gets the CKB value of the cell.
    *
-   * @returns The CKB amount as a `ccc.Num`.
+   * @returns The CKB amount as a `ccc.FixedPoint` taken from the cell's capacity.
    */
-  get ckbValue(): ccc.Num {
+  get ckbValue(): ccc.FixedPoint {
     return this.cell.cellOutput.capacity;
   }
 
   /**
    * Gets the UDT value of the cell.
    *
-   * @returns The UDT amount as a `ccc.Num`, which is always zero for this cell.
+   * For an OwnerCell, the UDT amount is always zero.
+   *
+   * @returns The UDT amount as a `ccc.FixedPoint` (0n).
    */
-  get udtValue(): ccc.Num {
-    return ccc.Zero;
-  }
+  readonly udtValue = 0n;
 
   /**
    * Retrieves the out point of the owned cell based on the owner's distance.
+   *
+   * Decodes the prefix of the cell's output data to determine the distance from the owner
+   * and then calculates the new index for the out point.
    *
    * @returns The out point of the owned cell as a `ccc.OutPoint`.
    */
