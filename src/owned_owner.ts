@@ -1,5 +1,6 @@
 import { ccc } from "@ckb-ccc/core";
 import {
+  defaultFindCellsLimit,
   unique,
   type ScriptDeps,
   type SmartTransaction,
@@ -172,13 +173,48 @@ export class OwnedOwnerManager implements ScriptDeps {
   }
 
   /**
-   * Asynchronously finds withdrawal groups associated with a given lock script.
+   * Async generator that finds and yields withdrawal groups for the specified lock scripts.
    *
-   * @param client - The client used to interact with the blockchain.
-   * @param locks - The lock scripts to filter withdrawal groups.
-   * @param options - Optional parameters for the search.
-   * @param {ccc.ClientBlockHeader} options.tip - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
-   * @returns An async generator that yields WithdrawalGroups objects.
+   * A "withdrawal group" pairs an owner cell with its corresponding DAO withdrawal cell.
+   *
+   * @param client
+   *   A CKB client instance providing:
+   *   - `findCells(query, order, limit)` for cached searches
+   *   - `findCellsOnChain(query, order, limit)` for on-chain searches
+   *   - `getTipHeader()` to fetch the latest block header
+   *
+   * @param locks
+   *   An array of lock scripts. Only owner cells whose `cellOutput.lock` exactly
+   *   matches one of these scripts will be considered.
+   *
+   * @param options
+   *   Optional parameters to refine the search:
+   *   - `tip?: ClientBlockHeader`
+   *       Reference block header for epoch and block-number lookups.
+   *       Defaults to `await client.getTipHeader()`.
+   *   - `onChain?: boolean`
+   *       If `true`, uses `findCellsOnChain`; otherwise, uses `findCells`.
+   *       Default: `false`.
+   *   - `limit?: number`
+   *       Maximum number of cells to fetch per lock script.
+   *       Defaults to `defaultFindCellsLimit` (400).
+   *
+   * @yields
+   *   {@link WithdrawalGroup} objects, each containing:
+   *   - the owner cell (`OwnerCell`)
+   *   - the corresponding DAO withdrawal cell (`DaoCell`)
+   *
+   * @remarks
+   * - Deduplicates `locks` via `unique(locks)`.
+   * - Applies an RPC filter with:
+   *     • `script: this.script` (DAO type script)
+   * - Skips any cell that:
+   *     1. Fails `this.isOwner(cell)`
+   *     2. Has a non-matching lock script
+   * - For each owner cell:
+   *     1. Construct an `OwnerCell` instance
+   *     2. Fetch the owned DAO withdrawal cell via `daoCellFrom({ outpoint, isDeposit: false, client, tip })`
+   *     3. Yield a new `WithdrawalGroup(ownedDaoCell, ownerCell)`
    */
   async *findWithdrawalGroups(
     client: ccc.Client,
@@ -186,9 +222,11 @@ export class OwnedOwnerManager implements ScriptDeps {
     options?: {
       tip?: ccc.ClientBlockHeader;
       onChain?: boolean;
+      limit?: number;
     },
   ): AsyncGenerator<WithdrawalGroup> {
     const tip = options?.tip ?? (await client.getTipHeader());
+    const limit = options?.limit ?? defaultFindCellsLimit;
     for (const lock of unique(locks)) {
       const findCellsArgs = [
         {
@@ -201,7 +239,7 @@ export class OwnedOwnerManager implements ScriptDeps {
           withData: true,
         },
         "asc",
-        400, // https://github.com/nervosnetwork/ckb/pull/4576
+        limit,
       ] as const;
 
       for await (const cell of options?.onChain

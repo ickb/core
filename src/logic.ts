@@ -1,5 +1,6 @@
 import { ccc } from "@ckb-ccc/core";
 import {
+  defaultFindCellsLimit,
   unique,
   type Epoch,
   type ScriptDeps,
@@ -158,21 +159,55 @@ export class LogicManager implements ScriptDeps {
   }
 
   /**
-   * Asynchronously finds receipt cells associated with given lock scripts.
+   * Async generator that finds and yields receipt cells matching the given lock scripts.
    *
-   * @param client - The client used to interact with the blockchain.
-   * @param locks - The lock scripts to filter receipt cells.
-   * @param options - Optional parameters for the search.
-   * @param options.onChain - A boolean indicating whether to use the cells cache or directly search on-chain.
-   * @returns An async generator that yields ReceiptCell objects.
+   * Receipt cells are identified by `this.script` (the receipt type script)
+   * and must also pass `this.isReceipt(cell)`.
+   *
+   * @param client
+   *   A CKB client instance providing:
+   *   - `findCells(query, order, limit)` for cached searches
+   *   - `findCellsOnChain(query, order, limit)` for direct on-chain searches
+   *
+   * @param locks
+   *   An array of lock scripts. Only cells whose `cellOutput.lock` exactly matches
+   *   one of these scripts will be considered.
+   *
+   * @param options
+   *   Optional parameters to control query behavior:
+   *   - `onChain?: boolean`
+   *       If `true`, uses `findCellsOnChain`. Otherwise, uses `findCells`. Default: `false`.
+   *   - `limit?: number`
+   *       Maximum number of cells to fetch per lock script. Defaults to `defaultFindCellsLimit` (400).
+   *
+   * @yields
+   *   {@link ReceiptCell} objects for each valid receipt cell found.
+   *
+   * @remarks
+   * - Deduplicates `locks` via `unique(locks)`.
+   * - Applies an RPC filter with:
+   *     - `script: this.script` (receipt type script)
+   * - Skips any cell that:
+   *     1. Fails `this.isReceipt(cell)`
+   *     2. Has a non-matching lock script
+   * - Converts each raw cell via `receiptCellFrom({ client, cell })` before yielding.
    */
   async *findReceipts(
     client: ccc.Client,
     locks: ccc.Script[],
     options?: {
+      /**
+       * If true, fetch cells directly from the chain RPC. Otherwise, use cached results.
+       * @default false
+       */
       onChain?: boolean;
+      /**
+       * Batch size per lock script. Defaults to {@link defaultFindCellsLimit}.
+       */
+      limit?: number;
     },
   ): AsyncGenerator<ReceiptCell> {
+    const limit = options?.limit ?? defaultFindCellsLimit;
     for (const lock of unique(locks)) {
       const findCellsArgs = [
         {
@@ -185,7 +220,7 @@ export class LogicManager implements ScriptDeps {
           withData: true,
         },
         "asc",
-        400, // https://github.com/nervosnetwork/ckb/pull/4576
+        limit,
       ] as const;
 
       for await (const cell of options?.onChain
@@ -201,16 +236,41 @@ export class LogicManager implements ScriptDeps {
   }
 
   /**
-   * Asynchronously finds iCKB deposit cells.
+   * Async generator that finds and yields iCKB deposit cells.
    *
-   * @param {ccc.Client} client - The client used to interact with the blockchain.
-   * @param {Object} [options] - Optional parameters for the deposit search.
-   * @param {ccc.ClientBlockHeader} [options.tip] - The block header to use as the tip for the search. If not provided, the latest block header will be fetched.
-   * @param {boolean} [options.onChain] - A flag indicating whether to search for on-chain deposits.
-   * @param {Epoch} [options.minLockUp] - An optional minimum lock-up period in epochs (Default 10 minutes)
-   * @param {Epoch} [options.maxLockUp] An optional maximum lock-up period in epochs (Default 3 days)
+   * Wraps DAO deposit detection for the iCKB token by delegating
+   * to `this.daoManager.findDeposits` and converting results.
    *
-   * @returns {AsyncGenerator<IckbDepositCell>} An asynchronous generator that yields iCKB deposit cells.
+   * @param client
+   *   A CKB RPC client instance implementing:
+   *   - `getTipHeader()` to fetch the latest block header
+   *   - `findCells` / `findCellsOnChain` for cell queries
+   *
+   * @param options
+   *   Optional parameters to control the search:
+   *   - `tip?: ClientBlockHeader`
+   *       Block header to use as reference for epoch/lock calculations.
+   *       If omitted, `client.getTipHeader()` is called to obtain the latest header.
+   *   - `onChain?: boolean`
+   *       When `true`, forces direct on-chain queries via `findCellsOnChain`.
+   *       Otherwise, uses cached results via `findCells`. Default: `false`.
+   *   - `minLockUp?: Epoch`
+   *       Minimum lock-up period in epochs. Defaults to manager’s configured minimum (~10 min).
+   *   - `maxLockUp?: Epoch`
+   *       Maximum lock-up period in epochs. Defaults to manager’s configured maximum (~3 days).
+   *   - `limit?: number`
+   *       Maximum cells per batch when querying. Defaults to `defaultFindCellsLimit` (400).
+   *
+   * @returns
+   *   An async generator yielding `IckbDepositCell` objects, each representing
+   *   an iCKB deposit derived from a DAO deposit cell.
+   *
+   * @remarks
+   * - Enforces that `options.tip` is a `ClientBlockHeader` instance by calling
+   *   `ClientBlockHeader.from(...)` if a plain object is provided.
+   * - Delegates to `this.daoManager.findDeposits(client, [this.script], options)` to locate
+   *   raw DAO deposit cells locked under `this.script`.
+   * - Converts each raw `DaoCell` into an `IckbDepositCell` via `ickbDepositCellFrom`.
    */
   async *findDeposits(
     client: ccc.Client,
@@ -219,6 +279,7 @@ export class LogicManager implements ScriptDeps {
       onChain?: boolean;
       minLockUp?: Epoch;
       maxLockUp?: Epoch;
+      limit?: number;
     },
   ): AsyncGenerator<IckbDepositCell> {
     const tip = options?.tip
