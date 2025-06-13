@@ -31,30 +31,6 @@ export class OwnedOwnerManager implements ScriptDeps {
   ) {}
 
   /**
-   * Creates an instance of OwnedOwnerManager from existing dependencies.
-   *
-   * @param deps - The script dependencies.
-   * @param deps.ownedOwner - The script dependencies for owned owner.
-   * @param daoManager - The DAO manager for handling withdrawal requests.
-   * @param udtHandler - The handler for User Defined Tokens (UDTs).
-   * @returns An instance of OwnedOwnerManager.
-   */
-  static fromDeps(
-    { ownedOwner }: { ownedOwner: ScriptDeps },
-    daoManager: DaoManager,
-    udtHandler: UdtHandler,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ..._: never[]
-  ): OwnedOwnerManager {
-    return new OwnedOwnerManager(
-      ownedOwner.script,
-      ownedOwner.cellDeps,
-      daoManager,
-      udtHandler,
-    );
-  }
-
-  /**
    * Checks if the specified cell is an owner cell.
    *
    * @param cell - The cell to check against.

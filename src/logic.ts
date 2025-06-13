@@ -9,9 +9,9 @@ import {
 } from "@ickb/utils";
 import { DaoManager } from "@ickb/dao";
 import {
-  IckbDepositCell,
+  type IckbDepositCell,
   ickbDepositCellFrom,
-  ReceiptCell,
+  type ReceiptCell,
   receiptCellFrom,
 } from "./cells.js";
 import { ReceiptData } from "./entities.js";
@@ -35,34 +35,6 @@ export class LogicManager implements ScriptDeps {
     public readonly daoManager: DaoManager,
     public readonly udtHandler: UdtHandler,
   ) {}
-
-  /**
-   * Creates an instance of LogicManager from existing dependencies.
-   *
-   * @param deps - The script dependencies.
-   * @param deps.ickbLogic - The script dependencies for iCKB logic.
-   * @param daoManager - The DAO manager for handling deposits and receipts.
-   * @param udtHandler - The handler for User Defined Tokens (UDTs).
-   * @returns An instance of LogicManager.
-   */
-  static fromDeps(
-    {
-      ickbLogic,
-    }: {
-      ickbLogic: ScriptDeps;
-    },
-    daoManager: DaoManager,
-    udtHandler: UdtHandler,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ..._: never[]
-  ): LogicManager {
-    return new LogicManager(
-      ickbLogic.script,
-      ickbLogic.cellDeps,
-      daoManager,
-      udtHandler,
-    );
-  }
 
   /**
    * Checks if the specified cell is an iCKB receipt.

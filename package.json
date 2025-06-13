@@ -1,29 +1,45 @@
 {
   "name": "@ickb/core",
-  "version": "1000.0.72",
+  "version": "1000.0.81",
   "description": "iCKB Core utils built on top of CCC",
+  "keywords": [
+    "ickb",
+    "ccc",
+    "ckb",
+    "blockchain"
+  ],
   "author": "phroi",
   "license": "MIT",
-  "private": false,
   "homepage": "https://github.com/ickb/core",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ickb/core.git"
+    "url": "https://github.com/ickb/core"
+  },
+  "bugs": {
+    "url": "https://github.com/ickb/core/issues"
   },
   "sideEffects": false,
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "build": "pnpm run build:esm && pnpm run build:cjs && node dist/cjs/index.js",
-    "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir dist/cjs",
+    "prepare": "tsc",
     "lint": "eslint ./src",
-    "up2lint": "rm pnpm-lock.yaml && pnpm up && pnpm build && pnpm lint"
+    "clean": "rm -fr pnpm-lock.yaml dist/*",
+    "revamp": "pnpm clean; pnpm up && node dist/index.js && pnpm lint"
   },
   "files": [
-    "/dist",
-    "/src"
+    "dist",
+    "src"
   ],
   "publishConfig": {
     "access": "public",
@@ -34,11 +50,11 @@
     "eslint": "^9.28.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1"
+    "typescript-eslint": "^8.34.0"
   },
   "dependencies": {
-    "@ckb-ccc/core": "^1.8.1",
-    "@ickb/dao": "^1000.0.72",
-    "@ickb/utils": "^1000.0.72"
+    "@ckb-ccc/core": "^1.9.0",
+    "@ickb/dao": "^1000.0.81",
+    "@ickb/utils": "^1000.0.81"
   }
 }

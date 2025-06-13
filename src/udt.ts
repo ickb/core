@@ -4,7 +4,6 @@ import type { DaoManager } from "@ickb/dao";
 import {
   UdtManager,
   type ExchangeRatio,
-  type ScriptDeps,
   type SmartTransaction,
   type UdtHandler,
 } from "@ickb/utils";
@@ -27,39 +26,36 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
     public readonly logicScript: ccc.Script,
     public readonly daoManager: DaoManager,
   ) {
-    super(script, cellDeps);
+    super(script, cellDeps, 8);
   }
 
   /**
-   * Creates an instance of IckbUdtManager from script dependencies and a DAO manager.
-   * @param deps - The script dependencies.
-   * @param deps.udt - The script dependencies for UDT (args is recalculated from ickbLogic).
-   * @param deps.ickbLogic - The script dependencies for iCKB logic.
-   * @param daoManager - The DAO manager instance.
-   * @returns An instance of IckbUdtManager.
+   * Calculates and returns the iCKB UDT script by combining the existing UDT script
+   * with the iCKB logic script’s hash.
+   *
+   * This method takes the raw UDT script (user-defined token) and the iCKB logic script,
+   * then recalculates the UDT script’s `args` field by concatenating:
+   *  1. The iCKB logic script hash
+   *  2. A fixed 4-byte little-endian length postfix (`"00000080"`)
+   *
+   * This is used to ensure that the UDT cell carries the correct iCKB lock logic
+   * within its arguments.
+   *
+   * @param udt - The original UDT (user-defined token) script whose codeHash and hashType
+   *   will be reused for the new script.
+   * @param ickbLogic - The iCKB logic script whose `hash()` will be prepended
+   *   to the UDT args.
+   * @returns A new `ccc.Script` instance with:
+   *   - `codeHash` and `hashType` copied from the `udt` parameter
+   *   - `args` set to the concatenation of `ickbLogic.hash()` and `"00000080"`
    */
-  static override fromDeps(
-    deps: {
-      udt: ScriptDeps;
-      ickbLogic: { script: ccc.Script };
-    },
-    daoManager: DaoManager,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ..._: never[]
-  ): IckbUdtManager {
-    const {
-      udt: {
-        script: { codeHash, hashType },
-        cellDeps,
-      },
-      ickbLogic: { script: logicScript },
-    } = deps;
-    const udtScript = new ccc.Script(
+  static calculateScript(udt: ccc.Script, ickbLogic: ccc.Script): ccc.Script {
+    const { codeHash, hashType } = udt;
+    return new ccc.Script(
       codeHash,
       hashType,
-      [logicScript.hash(), "00000080"].join("") as ccc.Hex,
+      [ickbLogic.hash(), "00000080"].join("") as ccc.Hex,
     );
-    return new IckbUdtManager(udtScript, cellDeps, logicScript, daoManager);
   }
 
   /**
