@@ -26,7 +26,7 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
     public readonly logicScript: ccc.Script,
     public readonly daoManager: DaoManager,
   ) {
-    super(script, cellDeps, 8);
+    super(script, cellDeps, "iCKB", "iCKB", 8);
   }
 
   /**
@@ -59,16 +59,19 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
   }
 
   /**
-   * Asynchronously retrieves the iCKB balance of inputs in a transaction.
-   * @param client - The client used to interact with the blockchain.
-   * @param tx - The smart transaction containing the inputs.
-   * @returns A promise that resolves to the total iCKB balance of the inputs.
-   * @throws Error if an input is not well defined.
+   * Asynchronously retrieves the iCKB UDT input balance (token amount and capacity)
+   * for a given transaction.
+   *
+   * @param client - The CKB client to query cell data.
+   * @param tx - The smart transaction whose inputs are to be balanced.
+   * @returns A promise resolving to a tuple:
+   *   - [0]: Total iCKB UDT amount in inputs (as `ccc.FixedPoint`).
+   *   - [1]: Total capacity in UDT-related inputs (as `ccc.FixedPoint`).
    */
   override async getInputsUdtBalance(
     client: ccc.Client,
     tx: SmartTransaction,
-  ): Promise<ccc.FixedPoint> {
+  ): Promise<[ccc.FixedPoint, ccc.FixedPoint]> {
     return ccc.reduceAsync(
       tx.inputs,
       async (acc, input) => {
@@ -89,9 +92,14 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
 
         const cell = new ccc.Cell(outPoint, cellOutput, outputData);
 
+        const [udtValue, capacity] = acc;
+
         // An iCKB UDT Cell
         if (this.isUdt(cell)) {
-          return acc + ccc.udtBalanceFrom(outputData);
+          return [
+            udtValue + ccc.udtBalanceFrom(outputData),
+            capacity + cellOutput.capacity,
+          ];
         }
 
         // An iCKB Receipt
@@ -105,7 +113,10 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
           const { depositQuantity, depositAmount } =
             ReceiptData.decode(outputData);
 
-          return acc + ickbValue(depositAmount, header) * depositQuantity;
+          return [
+            udtValue + ickbValue(depositAmount, header) * depositQuantity,
+            capacity + cellOutput.capacity,
+          ];
         }
 
         // An iCKB Deposit for which the withdrawal is being requested
@@ -116,12 +127,15 @@ export class IckbUdtManager extends UdtManager implements UdtHandler {
             value: outPoint.txHash,
           });
 
-          return acc - ickbValue(cell.capacityFree, header);
+          return [
+            udtValue - ickbValue(cell.capacityFree, header),
+            capacity + cellOutput.capacity,
+          ];
         }
 
         return acc;
       },
-      0n,
+      [0n, 0n],
     );
   }
 }
